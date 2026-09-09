@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="gu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ધોરણ 9-10 પ્રશ્નપત્ર જનરેટર</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:"Noto Sans Gujarati","Noto Sans",Arial,sans-serif;background:#f4f7fb;color:#172033}
+header{background:#174a7e;color:white;padding:18px 5%;box-shadow:0 2px 10px #0002}h1{margin:0 0 4px;font-size:27px}header p{margin:0;opacity:.9}
+main{max-width:1180px;margin:20px auto;padding:0 14px}.panel,.bank,.paper{background:white;border-radius:14px;box-shadow:0 4px 18px #183b5b18;padding:20px;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}label.field{font-weight:700;display:flex;flex-direction:column;gap:6px}input,select{padding:10px;border:1px solid #cbd5e1;border-radius:9px;font:inherit;background:white}
+button{border:0;border-radius:9px;padding:11px 16px;background:#174a7e;color:white;font-weight:700;cursor:pointer}button.secondary{background:#475569}button.success{background:#16803c}button.danger{background:#b42318}button:disabled{opacity:.45;cursor:not-allowed}
+.buttons{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}.help{background:#eef6ff;border-left:4px solid #174a7e;padding:11px 13px;border-radius:8px;line-height:1.55;margin-top:13px}
+.hidden{display:none!important}.bank-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.summary{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}.pill{background:#eef2f7;padding:7px 10px;border-radius:20px;font-weight:700}.pill b{color:#174a7e}
+.section-box{border:1px solid #d7e0ea;border-radius:12px;margin:14px 0;overflow:hidden}.section-title{padding:12px 14px;background:#f5f8fc;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}.section-title h3{margin:0}
+.section-note{padding:9px 14px;background:#fbfdff;color:#475569;border-top:1px solid #e4eaf0}
+.qrow{display:flex;gap:10px;align-items:flex-start;padding:11px 14px;border-top:1px solid #e6ebf0}.qrow:hover{background:#fafcff}.qrow input{margin-top:4px;flex:0 0 auto}.qtext{line-height:1.55;flex:1}.qmarks{white-space:nowrap;font-weight:700;color:#174a7e}
+.paper.empty{min-height:220px;display:grid;place-items:center;color:#64748b}.meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;border:1px solid #cbd5e1;padding:12px;margin:14px 0}.psec{margin-top:20px}.psec h3{border-bottom:2px solid #174a7e;padding-bottom:6px}.pq{margin:9px 0;line-height:1.65}.marks{float:right}.instruction{background:#f8fafc;border-left:4px solid #64748b;padding:9px 11px}
+.status{font-weight:700;color:#174a7e}.note{font-size:13px;color:#64748b}.error{color:#b42318;font-weight:700}
+@media(max-width:760px){.grid,.meta{grid-template-columns:1fr}h1{font-size:21px}.qrow{padding:10px}}
+@media print{body{background:#fff}header,.controls,.bank,.pdfbox{display:none!important}main{margin:0;padding:0;max-width:none}.paper{box-shadow:none;border-radius:0;padding:10mm;margin:0}.pq{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header><h1>📚 ધોરણ 9-10 પ્રશ્નપત્ર જનરેટર</h1><p id="subtitle">ગુજરાતી / English • Manual Selection + Random Paper • ગુણ પ્રમાણે ગણતરી</p></header>
+<main>
+<section class="panel controls">
+<h2 id="makeTitle">પ્રશ્નપત્ર બનાવો</h2>
+<div class="grid">
+<label class="field"><span id="lLang">ભાષા / Language</span><select id="uiLang"><option value="gu">ગુજરાતી</option><option value="en">English</option></select></label>
+<label class="field"><span id="lStd">ધોરણ / Standard</span><select id="std"><option>10</option><option>9</option></select></label>
+<label class="field"><span id="lSub">વિષય / Subject</span><select id="subject"><option value="social">સામાજિક વિજ્ઞાન</option></select></label>
+<label class="field"><span id="lChapter">પ્રકરણ / Chapter</span><select id="chapter"><option value="all">બધા પ્રશ્નો</option></select></label>
+<label class="field"><span id="lMarks">કુલ ગુણ / Total Marks</span><select id="paperMarks"><option value="pdf">PDF પ્રમાણે / As PDF</option><option value="25">25</option><option value="50">50</option><option value="80">80</option></select></label>
+<label class="field"><span id="lSchool">શાળાનું નામ / School</span><input id="school"></label>
+<label class="field"><span id="lStudent">વિદ્યાર્થીનું નામ / Student</span><input id="student"></label>
+<label class="field"><span id="lDate">તારીખ / Date</span><input id="date" type="date"></label>
+</div>
+<div class="help" id="help">પહેલા <b>Manual Selection</b> ખોલો. દરેક વિભાગમાં પ્રશ્નો પસંદ કરતાં જ ગુણ ગણાશે. જો વિભાગમાં “કોઈપણ 3” હોય તો 3 પસંદ થયા પછી બાકીના પ્રશ્નો આપમેળે બંધ થઈ જશે. પ્રશ્નોના શબ્દો/ક્રમને બદલીને નહીં, મૂળ લખાણ જ રાખવામાં આવશે.</div>
+<div class="buttons">
+<button id="showBank">☑️ Manual Selection</button>
+<button id="randomGenerate" class="success">🎲 Random Paper</button>
+<button id="print" class="secondary">🖨️ Print / PDF</button>
+</div>
+</section>
+
+<section id="bank" class="bank hidden">
+<div class="bank-head"><h2 id="bankTitle">📖 પ્રશ્નબેંક — પ્રશ્ન પસંદ કરો</h2><div class="buttons" style="margin:0">
+<button id="selectNone" class="danger">બધું કાઢી નાખો</button><button id="generate" class="success">પસંદ કરેલા પ્રશ્નોથી પેપર બનાવો</button><button id="closeBank" class="secondary">બંધ કરો</button>
+</div></div>
+<div id="summary" class="summary"></div>
+<div id="bankList"></div>
+</section>
+
+<section class="panel pdfbox">
+<h2 id="pdfTitle">📄 નવી Question Bank PDF ઉમેરો</h2>
+<div class="grid">
+<label class="field"><span>ધોરણ / Standard</span><select id="pdfStd"><option>9</option><option selected>10</option></select></label>
+<label class="field"><span>વિષય / Subject</span><input id="pdfSubject" placeholder="વિજ્ઞાન / Science"></label>
+<label class="field"><span>પ્રકરણ / Chapter</span><input id="pdfChapter" placeholder="પ્રકરણ 1"></label>
+<label class="field"><span>PDF</span><input id="pdfFile" type="file" accept="application/pdf"></label>
+</div>
+<div class="help">PDFમાં રહેલી <b>સૂચના, વિભાગ, કેટલા પ્રશ્નો પસંદ કરવાના, દરેક પ્રશ્નના ગુણ અને કુલ ગુણ</b> વાંચવાનો પ્રયાસ થશે. Text PDF અને scanned PDF બંને માટે OCR fallback છે. પ્રશ્નનું મૂળ લખાણ અને શબ્દક્રમ જાળવવાનો પ્રયાસ થાય છે.</div>
+<div class="buttons"><button id="uploadPdf" class="success">📥 PDF વાંચો અને પ્રશ્નો ઉમેરો</button><span id="pdfStatus" class="status"></span></div>
+</section>
+
+<section id="paper" class="paper empty"><div>હજુ પેપર બન્યું નથી.</div></section>
+</main>
+
+<script>
+const QB={social:{std:'10',title:'સામાજિક વિજ્ઞાન – પ્રથમ સત્ર પ્રશ્નબેંક 2026',groups:{A:{matching:[['ઑસ્ટ્રેલૉઇડ','નિષાદ પ્રજા'],['તરણેતરનો મેળો','સુરેન્દ્રનગર'],['વૌઠાનો મેળો','ધોળકા'],['તાના–રીરી','વડનગર'],['રુદ્રમહાલય','સિદ્ધપુર'],['મુનસર તળાવ','વિરમગામ'],['ઉત્તરાર્ધ નૃત્ય મહોત્સવ','મોઢેરા'],['ઝૂલતા મિનારા','અમદાવાદ'],['મૉંગોલોઈડ','ચીન'],['પારસી અગિયારી','નવસારી'],['ટેરાકોટા','કાચી માટીમાંથી પકવેલા વાસણો'],['કચ્છના બન્ની વિસ્તારની ભરતકલા','જત કોમ'],['બેવડ–ઇકત','પાટણ'],['કેલ્સીડૉનિક','અકીકકામ'],['કુચીપુડી','આંધ્રપ્રદેશ'],['કથકલી','કેરળ'],['ભરતનાટ્યમ','તમિલનાડુ'],['ધમાલ નૃત્ય','સીદીઓનું'],['રાણીની વાવ','પાટણ'],['કોણાર્કનું સૂર્યમંદિર','ઓડિશા'],['અષ્ટાધ્યાયી','પાણિનિ'],['બાણ','કાદંબરી'],['રેગુર','કાળી જમીન'],['ગ્રીનલેન્ડ','ક્રાયોલાઇટ ખનીજ'],['ભારત','વિકાસશીલ દેશ'],['સમાજવાદી પદ્ધતિ','વિકાસશીલ દેશ']],fill:[
+'_________ માં અમરનાથ, બદ્રીનાથ, કેદારનાથ જેવા યાત્રાના સ્થળો, નંદાદેવી જેવા શિખરો પણ આવેલા છે. (હિમાલય, નીલગિરી, હિમાચલ પ્રદેશ)',
+'પ્રાચીન કાળમાં હિન્દુઓ આર્ય કહેવાતા. તેઓની મુખ્ય વસ્તી જે પ્રદેશમાં હતી તે પ્રદેશને _________ નામ અપાયું હતું. (હસ્તિનાપુર, વિંધ્યાચળ, આર્યાવર્ત)',
+'ભરત મુનિએ નોંધ્યું છે કે એવું કોઈ શાસ્ત્ર નથી, એવું કોઈ શિલ્પ નથી, એવી કોઈ વિદ્યા નથી, એવું કોઈ કર્મ નથી કે જે _________ માં ન હોય. (શિલ્પકલા, સ્થાપત્યકલા, નાટ્યકલા)',
+'ભારતમાં સંગીતક્ષેત્રે "તુતી-એ-હિંદ" તરીકે _________ જાણીતા હતા. (તાનસેન, અમીર ખુશરો, બૈજુ બાવરા)',
+'_________ નું મંદિર ચોલવંશના રાજરાજ પ્રથમએ બંધાવ્યું હતું. (બૃહદેશ્વર, કૈલાસમંદિર, ખજૂરાહનું મંદિર)',
+'_________ ભારતની શિલ્પકલાનો શ્રેષ્ઠ નમૂનો છે. (સારનાથનો સ્તંભ, સાંચીનો સ્તંભ, નંદનગઢનો સ્તંભ)',
+'કુતબુદ્દીન ઐબકે બંધાવેલ "ઢાઈ-દિન-કા-ઝોંપડા" નામની મસ્જિદ _________ શહેરમાં આવેલી છે. (અમદાવાદ, અજમેર, અલ્હાબાદ)',
+'ગુજરાતના _________ ખાતે સૂર્યમંદિર આવેલું છે. (ખેરાલુ, વડનગર, મોઢેરા)',
+'કૌશલના રાજા પ્રસેનજિત, વ્યાકરણશાસ્ત્રી પાણિનિ અને રાજનીતિજ્ઞ કૌટિલ્યએ પણ _________ વિદ્યાપીઠમાં શિક્ષણ મેળવ્યું હોવાનું મનાય છે. (નાલંદા, કાશી, તક્ષશિલા)',
+'ભારત "રાઈનો વિઝન 2020"ની વ્યૂહરચના મુજબ ભારતમાં ગેંડાની સંખ્યા _________ સુધી લઈ જવાનો લક્ષ્યાંક રખાયો છે. (3500, 4000, 3000)',
+'_________ દેશોમાં અર્થતંત્રનું સ્વરૂપ ત્રિમુખી પ્રવર્તે છે. (વિકાસશીલ, વિકસિત, અલ્પવિકસિત)',
+'વિશ્વ વ્યાપાર સંગઠનનું વડું મથક _________ શહેરમાં આવેલું છે. (લંડન, પેરિસ, જિનીવા)',
+'_________ માં ભારત સરકારે "વાયુ પ્રદૂષણ નિયંત્રણ ધારો" પસાર કર્યો છે. (1981, 1995, 1999)',
+'ગરીબીની રેખાનો ખ્યાલ સૌપ્રથમ WHO ના નિયામક _________ એ રજૂ કર્યો. (રૂઝવેલ્ટ, બ્યૉડૉરે, જેમ્સ વોટ)',
+'_________ માં નવા આઈડિયા સાથે બેરોજગાર યુવાન ઉદ્યોગ સાહસિકોને તાલીમ, મફત વીજળી, જમીન અને આર્થિક સહાય પૂરી પાડવામાં આવે છે. (સ્ટાર્ટ-અપ ઇન્ડિયા, મનરેગા, મિશન મંગલમ)'],short:[
+'વારસો એટલે શું?','અલ્પાઇન, ડિનારિક અને આર્મેનોઇડ પ્રજાતિઓ ક્યાંથી આવેલી છે?','સાંસ્કૃતિક વારસો એટલે શું?','કાંતણ એટલે શું?','"સંગીત રત્નાકર" નામનો ગ્રંથ કોણે લખ્યો છે?','પ્રાચીન સમયમાં ચામડામાંથી બનાવવામાં આવતી કોઈપણ ચાર વસ્તુના નામ આપો.','સિટાડલનો અર્થ શું થાય છે?','સ્તંભલેખો કઈ લિપિમાં કોતરાયેલા છે?','ડોકયાર્ડ એટલે શું?','"સંગીતની ગંગોત્રી" તરીકે કયો ગ્રંથ જાણીતો છે?','ઉત્તરરામચરિતની રચના કોણે કરી હતી?','સામુદાયિક વન એટલે શું?','નિવનીકરણ એટલે શું?','આર્થિક વિકાસ એટલે શું?','આર્થિક વૃદ્ધિ એટલે શું?','મિશ્ર અર્થતંત્ર કયા દેશોમાં જોવા મળે છે?','આર્થિક ઉદારીકરણ એટલે શું?','સુપોષિત વિકાસ એટલે શું?'],tf:[
+'નેગ્રિટો મોહેં-જો-દડોની સિંધુ સંસ્કૃતિના સર્જકો અને પાષાણયુગની સંસ્કૃતિના સીધા વારસદાર તરીકે ઓળખવામાં આવે છે.', 'રાજસ્થાનનું બિકાનેર શહેર જડતરકામના ઘરેણા માટે જાણીતું છે.','ગુજરાતમાં ઇડરના રમકડાં જાણીતા છે.','"કથન કરે સો કથક કહાવે" – આ કથક સાથે જોડાયેલ છે.','મૌર્ય યુગમાં રચાયેલ સાંચીનો સ્તૂપ ઓડિશામાં આવેલો છે.','મલાવ તળાવ પાલનપુરમાં આવેલું છે.','દશકુમારચરિત નામનો ગ્રંથ ભારવિએ લખ્યો છે.','અકબરે "તુઝુક-એ-બાબરી" નામની પોતાની આત્મકથા લખી છે.','ગુલબદન બેગમે આઈને-અકબરી અને અકબરનામા નામના ગ્રંથો લખ્યા છે.','જંગલો, સૂર્યપ્રકાશ, પશુ-પંખીઓને અનવીનીકરણીય સંસાધનો કહેવાય છે.','દેશની કુલ આવકને રાષ્ટ્રીય આવક કહેવામાં આવતી નથી.','જાપાન વિકાસશીલ દેશ છે.','માધ્યમિક ક્ષેત્રોમાં ટાંકણીથી લઈને મોટા યંત્રો સુધીનું ઉત્પાદન કરવામાં આવે છે.','બજાર પદ્ધતિમાં ઉત્પાદનનાં સાધનોની માલિકી રાજ્યની હોય છે.','ટકાઉ વિકાસમાં પર્યાવરણીય સંસાધનોની કાયમી જાળવણી ઉપર ભાર મુકાયો નથી.']},B:[
+'ભારતના પ્રાચીન ગ્રંથ "વિષ્ણુપુરાણ"માં ભારત વિશે કઈ બાબતનો ઉલ્લેખ કરવામાં આવેલો છે?','સંસ્કૃતિ એટલે શું?','આપણે નદીને "લોકમાતા"નું બહુ માન આપ્યું છે. – વિધાન સમજાવો.','ઓસ્ટ્રેલાઈટ પ્રજાતિ વિશે ટૂંકમાં લખો.','નેગ્રિટો ભારતના પ્રાચીન નિવાસીઓ છે. – તેમના વિશે ટૂંકમાં લખો.','પારિભાષિક શબ્દો : (1) સપ્તસિંધુ (2) આર્યાવર્ત','માનવજીવન અને માટી વચ્ચે ઘણો જ પ્રાચીન સંબંધ રહ્યો છે. – વિધાન સમજાવો.','કાષ્ઠકલાનો પરિચય કરાવો.','અકીક એટલે શું? તેનું મહત્વ દર્શાવો.','શાસ્ત્રકારોએ ભવાઈને ભાવપ્રધાન નાટકો કહ્યાં છે. શા માટે?','મોહેં-જો-દડોની ગટર યોજના, સ્વચ્છતા તેમજ આરોગ્યના કેવા ઊંચા ખ્યાલો ધરાવતા હશે?','ગુપ્તયુગને કલાનો "સુવર્ણયુગ" કેમ કહેવામાં આવે છે?','પ્રકાશભાઈ સાહેબ મહેસાણા જિલ્લાના સૂર્યમંદિરની મુલાકાત માટે લઈ જાય છે – તેના વિશે લખો.','વેદનો અર્થ જણાવી વેદોના નામ લખો.','બૌદ્ધ સાહિત્ય પાલી ભાષામાં લખાયેલું છે. – તેના વિશે જણાવો.','નીચેનામાંથી કવિ કાલિદાસની કૃતિઓ કઈ કઈ છે? શોધીને લખો. (તુઝુક-એ-બાબરી, અભિજ્ઞાન શાકુંતલમ, ઋતુસંહાર, મેઘદૂત, કિરાતાર્જુનીયમ, કુમારસંભવ)','અનવીનીકરણ સંસાધનમાં કઈ કઈ બાબતોનો સમાવેશ થાય છે?','કાળી જમીન કપાસના પાકને વિશેષ અનુકૂળ હોવાથી આ જમીન કપાસની જમીન તરીકે ઓળખાય છે. – વિધાન સમજાવો.','જમીન ધોવાણ અટકાવવાના ઉપાયો કયા કયા છે તે જણાવો.','ભૂમિ સંરક્ષણના ઉપાયો જણાવો.','નિવનીકરણની અસરો જણાવો.','વિભાવનાઓનો અર્થ લખો : (1) અભયારણ્ય (2) રાષ્ટ્રીય ઉદ્યાન','મને ઓળખો: (1) અહીંયા વૃક્ષો–જંગલો સીધા સરકારતંત્રના નિયંત્રણમાં હોય છે. લાકડાં કાપવા કે વીણવા તથા પશુચરાણ માટે પ્રવેશ કરવાની મનાઈ હોય છે. (2) મને કુદરતનો સફાઈ કામદાર કહે છે.','સેવાક્ષેત્રમાં કઈ કઈ બાબતોનો સમાવેશ થાય છે?','બજાર પદ્ધતિનાં લક્ષણો જણાવો.','બજાર પદ્ધતિના લાભો જણાવો.','સમાજવાદ પદ્ધતિની મર્યાદાઓ (ખામીઓ) જણાવો.','સમાજવાદ પદ્ધતિનાં લક્ષણો જણાવો.','ટકાઉ વિકાસ એટલે શું?'],C:[
+'ગુજરાતનો સાંસ્કૃતિક વારસો એ આપણા દેશની ઓળખ છે. – આ વિધાન સમજાવો.','સંગીત મકરંદ, સંગીત રત્નાકર અને સંગીત પારિજાતનો ટૂંકમાં પરિચય આપો.','દ્રવિડોને મોહેં-જો-દડોની સિંધુ સંસ્કૃતિના સર્જકો અને પાષાણયુગની સંસ્કૃતિના સીધા વારસદાર તરીકે ઓળખવામાં આવે છે. – વિધાન સમજાવો.','ટૂંક નોંધ લખો : આદિવાસી નૃત્યો.','ગુજરાતના ગરબા અને ગરબી વિશે સમજ આપો.','પાટણ પટોળાના કારણે વિશ્વપ્રખ્યાત બન્યું છે. શા માટે?','પ્રાચીન ભારતનું નગર-આયોજન તે સમયની વ્યવસ્થાનો નિર્દેશ કરે છે. શા માટે?','હડપ્પીય સંસ્કૃતિનું સમકાલીન નગર ધોળાવીરા વિશે લખો.','હડપ્પીય સંસ્કૃતિનું લોથલ તે સમયે ભારતનું સમૃદ્ધ બંદર હતું. – સમજાવો.','અમદાવાદમાં આવેલા જોવાલાયક (સ્થાપત્યો) સ્થળો કયા-કયા છે?','રામાયણ અને મહાભારતનો તફાવત લખો.','ગુજરાતી સાહિત્યનો પરિચય કરાવો.','નાલંદા વિદ્યાપીઠ એ ખ્યાતિપ્રાપ્ત અને સુપ્રસિદ્ધ વિદ્યાકેન્દ્ર તરીકે રહી હતી. – સમજાવો.','વલભી સાતમા શતકમાં ગુજરાતનું આ વિદ્યાધામ અતિ પ્રસિદ્ધ શિક્ષણકેન્દ્ર હતું. – વિધાન સમજાવો.','વન સંરક્ષણ અંગેના ઉપાયો જણાવો.','વન્યજીવોના વિનાશના કારણો જણાવો.','અભયારણ્યો અને રાષ્ટ્રીય ઉદ્યાન વિશે તફાવત લખો.','આર્થિક પ્રવૃત્તિ અને બિનઆર્થિક પ્રવૃત્તિ વિશે તફાવત લખો.','વિકાસશીલ અર્થતંત્રનાં લક્ષણો જણાવો.','ઉત્પાદનનાં સાધનો કયા કયા છે?','આર્થિક ઉદારીકરણના લાભો અને ગેરલાભો જણાવો.','ખાનગીકરણનો અર્થ આપી તેના લાભ અને ગેરલાભ જણાવો.','વૈશ્વિકીકરણના લાભ અને ગેરલાભ જણાવો.','વિશ્વ વ્યાપાર સંગઠનના ધ્યેયો અને કાર્યો જણાવો.','ગ્રામોદયથી ભારત ઉદય. – વિધાન સમજાવો.'],D:[
+'ચિત્રકલાનું સ્થાન વિવિધ કલાઓમાં અગ્રિમ સ્થાને છે. – વિધાન સમજાવો.','પ્રાચીન ભારતીય સાહિત્યનું ટૂંકમાં વિવેચન કરો.','તક્ષશિલા વિશે ટૂંક નોંધ લખો.','કૃષિના વિવિધ પ્રકારો વિશે નોંધ લખો.','ભારતમાં ઋતુઓના સંદર્ભમાં કૃષિના પાકને કયા ત્રણ વિભાગોમાં વહેંચવામાં આવ્યા છે? તેનું વિવેચન કરો.','નીચે દર્શાવેલી આકૃતિને જોઈ તેના વિશે સવિસ્તારે લખો.','નીચે દર્શાવેલી આકૃતિને જોઈ તેના વિશે સવિસ્તારે લખો.','નીચે દર્શાવેલી આકૃતિને જોઈ તેના વિશે સવિસ્તારે લખો.','કૃષિમાં ટેકનિકલ સુધારાઓ જણાવો.','કૃષિમાં સંસ્થાકીય સુધારા જણાવો.','ટૂંક નોંધ લખો : હરિયાળી ક્રાંતિ','ભારતની ખેતી ઉપર વૈશ્વિકીકરણની અસરો જણાવો.','ગરીબી એટલે શું? ગરીબી રેખાથી નીચે જીવતા લોકોના સામાન્ય લક્ષણો જણાવો.','ગરીબી ઉદ્ભવવાના કારણો જણાવો.','બેરોજગારીનો અર્થ સમજાવી તેના મુખ્ય સ્વરૂપો જણાવો.','બેરોજગારી ઘટાડવાના ઉપાયો જણાવો.','ટૂંક નોંધ : વિશ્વ શ્રમ બજાર','શ્રમશક્તિના આયોજન ક્ષેત્રે રોજગારીના નવા માર્ગો ખુલ્યા છે. – વિધાન સમજાવો.']}}};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+(function(){
+const STORE='std910_custom_banks_v4';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const ui={
+ gu:{manual:'☑️ Manual Selection',random:'🎲 Random Paper',print:'🖨️ Print / PDF',make:'પ્રશ્નપત્ર બનાવો',bank:'📖 પ્રશ્નબેંક — પ્રશ્ન પસંદ કરો',none:'બધું કાઢી નાખો',generate:'પસંદ કરેલા પ્રશ્નોથી પેપર બનાવો',close:'બંધ કરો',help:'પહેલા <b>Manual Selection</b> ખોલો. દરેક વિભાગમાં પ્રશ્નો પસંદ કરતાં જ ગુણ ગણાશે. જો વિભાગમાં “કોઈપણ 3” હોય તો 3 પસંદ થયા પછી બાકીના પ્રશ્નો આપમેળે બંધ થઈ જશે. પ્રશ્નોના શબ્દો/ક્રમને બદલવામાં આવશે નહીં; મૂળ લખાણ જ રાખવામાં આવશે.',pdf:'📄 નવી Question Bank PDF ઉમેરો',pdfBtn:'📥 PDF વાંચો અને પ્રશ્નો ઉમેરો',made:'પેપર તૈયાર',select:'પસંદગી',marks:'ગુણ',section:'વિભાગ'},
+ en:{manual:'☑️ Manual Selection',random:'🎲 Random Paper',print:'🖨️ Print / PDF',make:'Create Question Paper',bank:'📖 Question Bank — Select Questions',none:'Clear All',generate:'Create Paper from Selected Questions',close:'Close',help:'Open Manual Selection first. Marks are counted live. If a section says “Any 3”, after 3 questions are selected the remaining questions in that section are disabled. Original question wording and order are preserved.',pdf:'📄 Add a New Question Bank PDF',pdfBtn:'📥 Read PDF and Add Questions',made:'Paper Ready',select:'Selected',marks:'Marks',section:'Section'}
+};
+let customBanks={}; try{customBanks=JSON.parse(localStorage.getItem(STORE)||'{}')||{}}catch(e){}
+const selected=new Set();
+
+function save(){localStorage.setItem(STORE,JSON.stringify(customBanks))}
+function currentBank(){const v=$('subject').value;return v==='social'?QB.social:(customBanks[v]||null)}
+function normalizeDigits(s){return String(s).replace(/[૦-૯]/g,d=>'૦૧૨૩૪૫૬૭૮૯'.indexOf(d))}
+function clean(s){return normalizeDigits(String(s||'')).replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').trim()}
+function baseGroups(){return {A:[],B:[],C:[],D:[],E:[]}}
+function normalizeBuiltIn(b){
+ if(b.__normalized)return b;
+ const g=b.groups, sections=[];
+ sections.push({id:'A1',title:'વિભાગ – A • 1 ગુણ',marks:6,attempt:null,each:1,kind:'A1',questions:[...g.A.fill,...g.A.short,...g.A.tf].map((q,i)=>({text:Array.isArray(q)?q.join(' — '):q,marks:1,n:i+1}))});
+ sections.push({id:'A2',title:'વિભાગ – A • જોડકાં • 1 ગુણ',marks:2,attempt:2,each:1,kind:'A2',questions:g.A.matching.map((q,i)=>({text:q[0]+' — '+q[1],marks:1,n:i+1}))});
+ sections.push({id:'B',title:'વિભાગ – B • 2 ગુણ',marks:6,attempt:3,each:2,kind:'B',questions:g.B.map((q,i)=>({text:q,marks:2,n:i+1}))});
+ sections.push({id:'C',title:'વિભાગ – C • 3 ગુણ',marks:9,attempt:3,each:3,kind:'C',questions:g.C.map((q,i)=>({text:q,marks:3,n:i+1}))});
+ sections.push({id:'D',title:'વિભાગ – D • 4 ગુણ',marks:4,attempt:1,each:4,kind:'D',questions:g.D.map((q,i)=>({text:q,marks:4,n:i+1}))});
+ b.__sections=sections;b.__normalized=true;return b;
+}
+function normalizeCustom(b){
+ if(b.__normalized)return b;
+ const secs=(b.sections||[]).map((s,i)=>({...s,id:s.id||('S'+i),title:s.title||('વિભાગ '+String.fromCharCode(65+i)),questions:(s.questions||[]).map((q,j)=>typeof q==='string'?{text:q,marks:s.each||1,n:j+1,chapter:b.chapter}:q)}));
+ b.__sections=secs;b.__normalized=true;return b;
+}
+function sectionsFor(b){return b===QB.social?normalizeBuiltIn(b).__sections:normalizeCustom(b).__sections}
+function rebuildSubjects(){
+ const keep=$('subject').value;let h='<option value="social">સામાજિક વિજ્ઞાન</option>';
+ Object.keys(customBanks).forEach(k=>h+=`<option value="${esc(k)}">${esc(customBanks[k].title||k)}</option>`);
+ $('subject').innerHTML=h;if([...$('subject').options].some(o=>o.value===keep))$('subject').value=keep;rebuildChapters();
+}
+function rebuildChapters(){
+ const b=currentBank();let ch=['બધા પ્રશ્નો'];if(b?.chapters)ch.push(...b.chapters);else if(b?.__sections){const a=[];b.__sections.forEach(s=>(s.questions||[]).forEach(q=>q.chapter&&a.push(q.chapter)));ch.push(...a)}
+ ch=[...new Set(ch)];$('chapter').innerHTML=ch.map((x,i)=>`<option value="${esc(i?' '+x.trim():'all')}">${esc(x)}</option>`).join('');
+}
+function selectedIn(secId){let n=0;selected.forEach(k=>{if(k.startsWith(secId+':'))n++});return n}
+function clearSelections(){selected.clear()}
+function filteredSections(b){
+ const ch=$('chapter').value.trim();let secs=sectionsFor(b);
+ if(ch==='all')return secs;
+ return secs.map(s=>({...s,questions:(s.questions||[]).filter(q=>!q.chapter||q.chapter===ch||String(q.chapter).startsWith(ch))})).filter(s=>s.questions.length);
+}
+function paperTarget(){
+ const v=$('paperMarks').value;
+ if(v==='25'||v==='50'||v==='80')return Number(v);
+ const b=currentBank(), secs=sectionsFor(b);return secs.reduce((a,s)=>a+(s.marks||0),0)||25;
+}
+function selectionCaps(secs){
+ const v=$('paperMarks').value;
+ if(v==='25')return {'A1':5,'A2':2,'B':3,'C':3,'D':1};
+ if(v==='50')return {'A1':10,'A2':3,'B':5,'C':5,'D':2};
+ if(v==='80')return {'A1':15,'A2':4,'B':7,'C':7,'D':3};
+ const o={};secs.forEach(s=>o[s.id]=s.attempt||null);return o;
+}
+function renderSummary(secs){
+ const counts={1:0,2:0,3:0,4:0,5:0}, total=[...selected].reduce((sum,k)=>{
+  const [sid,idx]=k.split(':');const s=secs.find(x=>x.id===sid);const q=s?.questions?.[Number(idx)];if(q)counts[q.marks||1]++;return sum+(q?.marks||0);
+ },0);
+ let h=`<span class="pill">કુલ પસંદ: <b>${selected.size}</b></span><span class="pill">કુલ ગુણ: <b>${total}</b></span>`;
+ [1,2,3,4,5].forEach(m=>h+=`<span class="pill">${m} ગુણ: <b>${counts[m]}</b></span>`);
+ $('summary').innerHTML=h;
+}
+function renderBank(){
+ const b=currentBank();if(!b)return;const secs=filteredSections(b),caps=selectionCaps(secs);let h='';
+ secs.forEach(s=>{
+   const cap=caps[s.id],sel=selectedIn(s.id);
+   const inst=s.instruction||((s.attempt)?`કોઈપણ ${s.attempt} પ્રશ્નોના જવાબ આપો.`:'');
+   h+=`<div class="section-box"><div class="section-title"><h3>${esc(s.title)}</h3><b>પસંદ: ${sel}${cap?' / '+cap:''} • વિભાગ ગુણ: ${s.marks||'-'}</b></div>${inst?`<div class="section-note">સૂચના: ${esc(inst)}${s.each?` • દરેક પ્રશ્ન: ${s.each} ગુણ`:''}</div>`:''}`;
+   (s.questions||[]).forEach((q,i)=>{
+     const k=s.id+':'+i, checked=selected.has(k), disabled=!checked&&cap!==null&&sel>=cap;
+     h+=`<label class="qrow"><input type="checkbox" data-key="${esc(k)}" ${checked?'checked':''} ${disabled?'disabled':''}><span class="qtext"><b>${q.n||i+1}.</b> ${esc(q.text||'')}</span><span class="qmarks">[${q.marks||1}]</span></label>`;
+   });
+   h+='</div>';
+ });
+ if(!h)h='<div class="note">આ પસંદ કરેલા પ્રકરણમાં પ્રશ્નો મળ્યા નથી.</div>';
+ $('bankList').innerHTML=h;renderSummary(secs);
+ $('bankList').querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',()=>{
+   const k=cb.dataset.key,sid=k.split(':')[0],idx=Number(k.split(':')[1]),s=secs.find(x=>x.id===sid);
+   if(cb.checked){const cap=caps[sid];if(cap!==null&&selectedIn(sid)>=cap){cb.checked=false;return}selected.add(k)}else selected.delete(k);
+   renderBank();
+ }));
+}
+function validate(){
+ const b=currentBank(),secs=filteredSections(b),caps=selectionCaps(secs);
+ for(const s of secs){const cap=caps[s.id];if(cap!==null&&selectedIn(s.id)!==cap)return {ok:false,msg:`${s.title}: ${cap} પ્રશ્ન પસંદ કરવા જરૂરી છે.`}}
+ if(!selected.size)return {ok:false,msg:'ઓછામાં ઓછો એક પ્રશ્ન પસંદ કરો.'};
+ return {ok:true};
+}
+function selectedData(){
+ const b=currentBank(),secs=filteredSections(b),out=secs.map(s=>({...s,questions:(s.questions||[]).filter((q,i)=>selected.has(s.id+':'+i))})).filter(s=>s.questions.length);
+ return out;
+}
+function randomData(){
+ const b=currentBank(),secs=filteredSections(b),caps=selectionCaps(secs),out=[];
+ clearSelections();
+ secs.forEach(s=>{const cap=caps[s.id]===null?s.questions.length:Math.min(caps[s.id],s.questions.length);const qs=[...s.questions].sort(()=>Math.random()-.5).slice(0,cap);out.push({...s,questions:qs})});
+ return out;
+}
+function buildPaper(secs,total,b){
+ const lang=$('uiLang').value, en=lang==='en',subject=b===QB.social?'Social Science':(b.title||'Subject');
+ let h=`<h2>${en?'Gujarat Secondary and Higher Secondary Education Board':'ગુજરાત માધ્યમિક અને ઉચ્ચતર માધ્યમિક શિક્ષણ બોર્ડ'}</h2>
+ <div class="meta"><div><b>${en?'Standard':'ધોરણ'}:</b> ${esc(b.std||$('std').value)}</div><div><b>${en?'Subject':'વિષય'}:</b> ${esc(subject)}</div><div><b>${en?'School':'શાળા'}:</b> ${esc($('school').value||'________________')}</div><div><b>${en?'Student':'વિદ્યાર્થી'}:</b> ${esc($('student').value||'________________')}</div><div><b>${en?'Date':'તારીખ'}:</b> ${esc($('date').value||'__________')}</div><div><b>${en?'Total Marks':'કુલ ગુણ'}:</b> ${total}</div></div>`;
+ let calc=0;
+ secs.forEach((s,si)=>{
+   const qs=s.questions||[];const sm=qs.reduce((a,q)=>a+(q.marks||1),0);calc+=sm;
+   const instruction=s.instruction||((s.attempt)?(en?`Answer any ${s.attempt} questions.`:`કોઈપણ ${s.attempt} પ્રશ્નોના જવાબ આપો.`):'');
+   h+=`<div class="psec"><h3>${esc(s.title||((en?'Section ':'વિભાગ ')+String.fromCharCode(65+si)))} <span class="marks">[${sm}]</span></h3>`;
+   if(instruction)h+=`<div class="instruction"><b>${en?'Instruction':'સૂચના'}:</b> ${esc(instruction)}${s.each?` • ${en?'Each':'દરેક'}: ${s.each} ${en?'marks':'ગુણ'}`:''}</div>`;
+   qs.forEach((q,i)=>h+=`<div class="pq"><b>${i+1}.</b> ${esc(q.text||'')} <span class="marks">[${q.marks||1}]</span></div>`);
+   h+='</div>';
+ });
+ h+=`<div class="footer">${en?'Calculated selected marks':'પસંદ કરેલા પ્રશ્નોના ગુણ'}: <b>${calc}</b></div>`;
+ $('paper').classList.remove('empty');$('paper').innerHTML=h;window.scrollTo({top:$('paper').offsetTop-10,behavior:'smooth'});
+}
+$('showBank').onclick=()=>{$('bank').classList.remove('hidden');renderBank();$('bank').scrollIntoView({behavior:'smooth'})};
+$('closeBank').onclick=()=>$('bank').classList.add('hidden');
+$('selectNone').onclick=()=>{clearSelections();renderBank()};
+$('generate').onclick=()=>{const v=validate();if(!v.ok){alert(v.msg);return}buildPaper(selectedData(),selectedData().reduce((a,s)=>a+s.questions.reduce((x,q)=>x+(q.marks||1),0),0),currentBank())};
+$('randomGenerate').onclick=()=>{const d=randomData();if(!d.length){alert('આ પ્રકરણમાં પ્રશ્નો મળ્યા નથી.');return}buildPaper(d,paperTarget(),currentBank())};
+$('print').onclick=()=>{if($('paper').classList.contains('empty')){alert('પહેલા પેપર બનાવો.');return}window.print()};
+$('chapter').onchange=()=>{clearSelections();if(!$('bank').classList.contains('hidden'))renderBank()};
+$('paperMarks').onchange=()=>{clearSelections();if(!$('bank').classList.contains('hidden'))renderBank()};
+$('subject').onchange=()=>{clearSelections();rebuildChapters();if(!$('bank').classList.contains('hidden'))renderBank()};
+$('uiLang').onchange=()=>{
+ const u=ui[$('uiLang').value];$('makeTitle').textContent=u.make;$('showBank').textContent=u.manual;$('randomGenerate').textContent=u.random;$('print').textContent=u.print;$('bankTitle').textContent=u.bank;$('selectNone').textContent=u.none;$('generate').textContent=u.generate;$('closeBank').textContent=u.close;$('help').innerHTML=u.help;$('pdfTitle').textContent=u.pdf;$('uploadPdf').textContent=u.pdfBtn;
+};
+$('date').value=new Date().toISOString().slice(0,10);
+
+function inferBlueprint(text){
+ const lines=String(text||'').replace(/\r/g,'').split('\n').map(clean).filter(Boolean),out={total:null,sections:{},raw:[]};
+ const all=lines.join(' '),tm=all.match(/(?:કુલ\s*ગુણ|total\s*marks?|maximum\s*marks?)\s*[:：-]?\s*(\d{1,3})/i);if(tm)out.total=+tm[1];
+ let sec=null;
+ for(const line of lines){
+   const sm=line.match(/(?:વિભાગ|section|ભાગ)\s*[-–:]?\s*([A-E])\b/i);if(sm){sec=sm[1].toUpperCase();out.sections[sec]??={};out.sections[sec].raw=[];}
+   const mm=[...line.matchAll(/(\d{1,3})\s*(?:ગુણ|marks?|mark)\b/gi)];
+   const ch=line.match(/(?:કોઈપણ|ગમે તે|any)\s*(\d{1,2})/i);
+   const each=line.match(/(?:દરેક|each)\s*(?:ના|question)?\s*(\d{1,2})\s*(?:ગુણ|marks?|mark)\b/i);
+   if(sec){if(mm.length)out.sections[sec].marks=+mm[mm.length-1][1];if(ch)out.sections[sec].attempt=+ch[1];if(each)out.sections[sec].each=+each[1];if(/(?:સૂચના|instructions?|નિર્દેશ)/i.test(line)||ch||mm.length){out.sections[sec].raw.push(line)}}
+ }
+ Object.values(out.sections).forEach(v=>{if(!v.each&&v.attempt&&v.marks&&v.marks%v.attempt===0)v.each=v.marks/v.attempt;});
+ return out;
+}
+function parseQuestions(text,chapter){
+ const raw=String(text||'').replace(/\r/g,'').split('\n').map(clean).filter(Boolean),items=[];let current='B',pending=null,wait=null;
+ const secRe=/(?:વિભાગ|section|ભાગ)\s*[-–:]?\s*([A-E])\b/i;
+ const chapRe=/(?:પ્રકરણ|chapter|અધ્યાય)\s*[-–:]?\s*(\d{1,3})(?:\s*[-–:]\s*)?(.*)$/i;
+ const push=()=>{if(pending&&pending.text.trim().length>2)items.push(pending);pending=null};
+ for(const line of raw){
+   const cm=line.match(chapRe);if(cm){push();chapter=(cm[1]+(cm[2]?' — '+cm[2].trim():''));continue}
+   const sm=line.match(secRe);if(sm){push();current=sm[1].toUpperCase();wait=null;continue}
+   if(/^(?:પ્રશ્નબેંક|question bank|કુલ ગુણ|સૂચના|instructions|વિષય|ધોરણ|સમય|time|marks?|ગુણ)\b/i.test(line))continue;
+   const m=line.match(/^(?:(?:પ્રશ્ન|પ્ર\.?|q\.?)[\s-]*)?([0-9૦-૯]{1,3})\s*(?:[.)।:-]\s*|[-–]\s+|\s+)(.{3,})$/i);
+   if(m){push();pending={n:+normalizeDigits(m[1]),text:m[2],section:current,chapter};wait=null;continue}
+   const st=line.match(/^(?:(?:પ્રશ્ન|પ્ર\.?|q\.?)[\s-]*)?([0-9૦-૯]{1,3})[.)।:-]?$/i);
+   if(st){push();wait=+normalizeDigits(st[1]);continue}
+   if(wait!==null){pending={n:wait,text:line,section:current,chapter};wait=null;continue}
+   if(pending)pending.text+=' '+line;
+ }
+ push();
+ if(items.length<3){
+   const joined=raw.join(' '),re=/(?:^|\s)(?:(?:પ્રશ્ન|પ્ર\.?|q\.?)\s*)?([0-9૦-૯]{1,3})\s*[.)।:-]\s*/gi,ms=[];let m;
+   while((m=re.exec(joined)))ms.push({n:+normalizeDigits(m[1]),start:m.index+(m[0].match(/\S/)?.index||0),end:re.lastIndex});
+   if(ms.length>=3){items.length=0;for(let i=0;i<ms.length;i++){const t=joined.slice(ms[i].end,i+1<ms.length?ms[i+1].start:joined.length).trim();if(t.length>2)items.push({n:ms[i].n,text:t,section:current,chapter})}}
+ }
+ return {items,blueprint:inferBlueprint(text)};
+}
+async function extractPdf(file){
+ if(!window.pdfjsLib)throw new Error('PDF reader લોડ થયો નથી.');
+ const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer()),disableWorker:true}).promise;let pages=[],chars=0;
+ for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i),c=await page.getTextContent(),rows=[];for(const it of c.items.filter(x=>x.str?.trim())){const y=it.transform?.[5]||0,x=it.transform?.[4]||0;let r=rows.find(z=>Math.abs(z.y-y)<5);if(!r){r={y,items:[]};rows.push(r)}r.items.push({x,s:it.str.trim()})}const t=rows.sort((a,b)=>b.y-a.y).map(r=>r.items.sort((a,b)=>a.x-b.x).map(z=>z.s).join(' ')).join('\n');pages.push(t);chars+=t.length;$('pdfStatus').textContent=`⏳ PDF પાનું ${i}/${pdf.numPages} વાંચાઈ રહ્યું છે...`}
+ if(chars>=120)return pages.join('\n');
+ if(!window.Tesseract)throw new Error('Scanned PDF માટે OCR લોડ થયો નથી. Internet ચાલુ રાખો.');
+ let out='';for(let i=1;i<=pdf.numPages;i++){$('pdfStatus').textContent=`🔎 OCR પાનું ${i}/${pdf.numPages}...`;const p=await pdf.getPage(i),v=p.getViewport({scale:2}),c=document.createElement('canvas'),ctx=c.getContext('2d');c.width=Math.ceil(v.width);c.height=Math.ceil(v.height);await p.render({canvasContext:ctx,viewport:v}).promise;const r=await Tesseract.recognize(c,'guj+eng',{logger:m=>{if(m.status==='recognizing text')$('pdfStatus').textContent=`🔎 OCR પાનું ${i}/${pdf.numPages} — ${Math.round((m.progress||0)*100)}%`}});out+='\n'+(r.data?.text||'')}return out;
+}
+function addParsed(name,std,chapter,parsed,fileName){
+ const key=Object.keys(customBanks).find(k=>customBanks[k].std===std&&String(customBanks[k].baseName||'').toLowerCase()===name.toLowerCase())||('custom_'+Date.now());
+ if(!customBanks[key])customBanks[key]={std,title:name,baseName:name,chapters:[],sections:[],blueprints:[]};
+ const b=customBanks[key],bp=parsed.blueprint,bySec={};
+ parsed.items.forEach((q,i)=>{(bySec[q.section]??=[]).push({text:q.text,n:q.n,chapter:q.chapter})});
+ Object.entries(bySec).forEach(([sid,qs])=>{
+   const info=bp.sections[sid]||{},idx=b.sections.findIndex(s=>s.id===chapter+'|'+sid);
+   const each=info.each||({A:1,B:2,C:3,D:4,E:5}[sid]||1);
+   const sec={id:chapter+'|'+sid,title:`${sid==='A'?'વિભાગ – A':('વિભાગ – '+sid)} • ${each} ગુણ`,marks:info.marks||qs.reduce((a,q)=>a+each,0),attempt:info.attempt||null,each,instruction:(info.raw||[]).join(' '),questions:qs.map(q=>({...q,marks:each}))};
+   if(idx<0)b.sections.push(sec);else b.sections[idx].questions.push(...sec.questions);
+ });
+ b.chapters=[...new Set([...(b.chapters||[]),chapter])];b.blueprints=[...(b.blueprints||[]),{chapter,blueprint:bp,source:fileName}];save();rebuildSubjects();$('subject').value=key;rebuildChapters();$('chapter').value=' '+chapter.trim();
+ return b;
+}
+$('uploadPdf').onclick=async()=>{
+ const f=$('pdfFile').files[0],name=$('pdfSubject').value.trim(),chapter=$('pdfChapter').value.trim()||'બધા પ્રકરણ',std=$('pdfStd').value;
+ if(!f)return alert('કૃપા કરીને PDF પસંદ કરો.');if(!name)return alert('વિષયનું નામ લખો.');
+ try{const raw=await extractPdf(f),parsed=parseQuestions(raw,chapter);if(parsed.items.length<1)throw new Error('PDFમાંથી પ્રશ્નો મળ્યા નથી.');addParsed(name,std,chapter,parsed,f.name);$('pdfStatus').textContent=`✅ ${parsed.items.length} પ્રશ્નો ઉમેરાયા • ${chapter}`;alert('PDF સફળતાપૂર્વક ઉમેરાઈ. હવે Manual Selection ખોલીને દરેક વિભાગમાં પ્રશ્નો પસંદ કરો.');}catch(e){$('pdfStatus').textContent='❌ '+e.message;alert('PDF વાંચવામાં સમસ્યા: '+e.message)}
+};
+rebuildSubjects();$('uiLang').dispatchEvent(new Event('change'));
+})();
+</script>
+</body>
+</html>

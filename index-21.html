@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ધોરણ 9-10 પ્રશ્નપત્ર પોર્ટલ</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,"Noto Sans Gujarati",sans-serif;background:#f3f7fb;color:#172033}
+header{background:linear-gradient(135deg,#155eef,#7c3aed);color:white;padding:22px 16px;text-align:center}
+header h1{margin:0 0 6px;font-size:25px}
+header p{margin:0;opacity:.95}
+.container{max-width:1100px;margin:20px auto;padding:0 14px}
+.card{background:white;border-radius:16px;padding:18px;margin-bottom:18px;box-shadow:0 5px 20px #00000012}
+h2{margin-top:0;color:#155eef;font-size:21px}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.field{flex:1;min-width:180px}
+label{display:block;font-weight:bold;margin-bottom:6px}
+input,select,button,textarea{font:inherit}
+input[type=text],input[type=number],select{width:100%;padding:11px;border:1px solid #ccd5e1;border-radius:9px;background:white}
+input[type=file]{width:100%;padding:10px;border:1px dashed #8fa3bc;border-radius:9px;background:#f8fafc}
+button{border:0;border-radius:9px;padding:11px 16px;cursor:pointer;font-weight:bold}
+.primary{background:#155eef;color:white}.success{background:#16a34a;color:white}
+.secondary{background:#e8eef8;color:#172033}.danger{background:#dc2626;color:white}
+.notice{padding:12px;border-radius:10px;background:#fff7d6;margin-top:12px}
+.status{margin-top:10px;font-weight:bold}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.total{margin-left:auto;background:#ecfdf3;color:#166534;padding:10px 14px;border-radius:10px;font-weight:bold}
+.question{border:1px solid #d9e1ec;border-radius:12px;padding:14px;margin:10px 0;background:#fbfdff}
+.question.selected{border:2px solid #155eef;background:#f5f8ff}
+.qtop{display:flex;gap:10px;align-items:flex-start}
+.qnum{font-weight:bold;min-width:35px}
+.qtext{white-space:pre-wrap;line-height:1.55;flex:1}
+.marks{width:105px}
+.marks select{font-weight:bold}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.small{font-size:13px;color:#64748b}
+.paper{line-height:1.7}
+.paper h3{text-align:center;margin:5px}
+.paper-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;border:1px solid #ddd;padding:10px;margin:12px 0}
+.paper-q{margin:12px 0;padding-bottom:10px;border-bottom:1px solid #ddd}
+@media(max-width:650px){.paper-meta{grid-template-columns:1fr}.total{margin-left:0}}
+@media print{
+ body{background:white}.no-print{display:none!important}.container{max-width:none;margin:0}.card{box-shadow:none;border:0}
+ #paperCard{display:block!important}
+}
+</style>
+</head>
+<body>
+<header>
+<h1>ધોરણ 9-10 પ્રશ્નપત્ર પોર્ટલ</h1>
+<p>PDFમાંથી પ્રશ્નો વાંચો • પ્રશ્ન પસંદ કરો • ગુણ તમારી રીતે આપો • Paper બનાવો</p>
+</header>
+
+<div class="container">
+<div class="card no-print">
+<h2>1. PDF Upload</h2>
+<div class="row">
+<div class="field">
+<label>PDF પસંદ કરો</label>
+<input id="pdfFile" type="file" accept=".pdf,application/pdf">
+</div>
+<div class="field">
+<label>પ્રશ્ન ઓળખવાની રીત</label>
+<select id="parseMode">
+<option value="auto">Auto – નંબરવાળા પ્રશ્નો શોધો</option>
+<option value="lines">દરેક અલગ line ને પ્રશ્ન ગણો</option>
+</select>
+</div>
+</div>
+<div class="actions">
+<button class="primary" onclick="loadPDF()">PDFમાંથી પ્રશ્નો લાવો</button>
+<button class="secondary" onclick="clearAll()">બધું સાફ કરો</button>
+</div>
+<div id="status" class="status"></div>
+<div class="notice">
+<b>મહત્વપૂર્ણ:</b> PDFમાં આપેલા પ્રશ્નોના મૂળ શબ્દો બદલાશે નહીં. ગુણ PDFમાંથી નક્કી નહીં થાય — દરેક પ્રશ્નના ગુણ તમે નીચે જાતે પસંદ કરી શકશો.
+</div>
+</div>
+
+<div class="card no-print">
+<h2>2. Paperની માહિતી</h2>
+<div class="row">
+<div class="field"><label>શાળાનું નામ</label><input id="school" type="text" placeholder="શાળાનું નામ"></div>
+<div class="field"><label>ધોરણ</label><input id="std" type="text" placeholder="ધોરણ 9 / 10"></div>
+<div class="field"><label>વિષય</label><input id="subject" type="text" placeholder="વિષય"></div>
+</div>
+<div class="row" style="margin-top:12px">
+<div class="field"><label>પરીક્ષાનું નામ</label><input id="exam" type="text" placeholder="એકમ કસોટી / પ્રથમ પરીક્ષા"></div>
+<div class="field"><label>તારીખ</label><input id="date" type="text" placeholder="તારીખ"></div>
+<div class="field"><label>સમય</label><input id="time" type="text" placeholder="સમય"></div>
+</div>
+</div>
+
+<div class="card no-print" id="questionsCard" style="display:none">
+<h2>3. પ્રશ્નો પસંદ કરો અને ગુણ આપો</h2>
+<div class="toolbar">
+<button class="secondary" onclick="selectAll()">બધા Select</button>
+<button class="secondary" onclick="unselectAll()">બધા Unselect</button>
+<button class="secondary" onclick="setAllMarks(1)">બધાને 1</button>
+<button class="secondary" onclick="setAllMarks(2)">બધાને 2</button>
+<button class="secondary" onclick="setAllMarks(3)">બધાને 3</button>
+<div class="total">કુલ ગુણ: <span id="totalMarks">0</span></div>
+</div>
+<div class="small">દરેક પ્રશ્નની સામે ગુણ પસંદ કરો. PDFમાં પ્રશ્ન કેટલા ગુણનો છે તેની જરૂર નથી — તમે અહીં તમારી રીતે ગુણ નક્કી કરો.</div>
+<div id="questions"></div>
+<div class="actions">
+<button class="success" onclick="makePaper()">પસંદ કરેલા પ્રશ્નોથી Paper બનાવો</button>
+</div>
+</div>
+
+<div class="card" id="paperCard" style="display:none">
+<div class="no-print actions">
+<button class="primary" onclick="window.print()">Paper Print / Save PDF</button>
+<button class="secondary" onclick="document.getElementById('paperCard').style.display='none'">Paper બંધ કરો</button>
+</div>
+<div id="paper" class="paper"></div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let questions=[];
+
+function setStatus(t,ok=false){
+ document.getElementById('status').innerHTML=t;
+ document.getElementById('status').style.color=ok?'#15803d':'#b45309';
+}
+
+async function loadPDF(){
+ const file=document.getElementById('pdfFile').files[0];
+ if(!file){setStatus('પહેલા PDF પસંદ કરો.');return}
+ if(file.type!=='application/pdf' && !file.name.toLowerCase().endsWith('.pdf')){
+   setStatus('માત્ર PDF file પસંદ કરો.');return;
+ }
+ setStatus('PDF વાંચવામાં આવી રહ્યું છે...');
+ try{
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let pages=[];
+  for(let p=1;p<=pdf.numPages;p++){
+   const page=await pdf.getPage(p);
+   const content=await page.getTextContent();
+   const items=content.items.map(x=>x.str).filter(x=>x!==undefined);
+   pages.push(items.join(' '));
+  }
+  const text=pages.join('\n');
+  questions=parseQuestions(text);
+  if(!questions.length){
+   setStatus('પ્રશ્નો આપમેળે મળ્યા નથી. PDF text-based ન હોય અથવા scan/image PDF હોઈ શકે છે.');
+   return;
+  }
+  renderQuestions();
+  document.getElementById('questionsCard').style.display='block';
+  setStatus(questions.length+' પ્રશ્નો મળ્યા. હવે દરેક પ્રશ્નના ગુણ તમારી રીતે પસંદ કરો.',true);
+ }catch(e){
+  console.error(e);
+  setStatus('PDF વાંચવામાં ભૂલ આવી. Text-based PDF ફરી અજમાવો.');
+ }
+}
+
+function cleanText(s){
+ return s.replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').replace(/\n\s*\n+/g,'\n').trim();
+}
+
+function parseQuestions(text){
+ text=cleanText(text);
+ const mode=document.getElementById('parseMode').value;
+ let out=[];
+ if(mode==='lines'){
+   text.split(/\n/).map(x=>cleanText(x)).filter(x=>x.length>2).forEach((x,i)=>{
+     out.push({id:i, text:x, selected:false, marks:1});
+   });
+   return out;
+ }
+ // Common question numbering: 1., 1), ૧., ૧), Q1, પ્રશ્ન 1 વગેરે.
+ const re=/(?:^|\n|\s)(?:પ્રશ્ન\s*)?([0-9૦-૯]{1,3})\s*[\.\)\-:]/g;
+ let matches=[...text.matchAll(re)];
+ if(matches.length>=2){
+   for(let i=0;i<matches.length;i++){
+     const start=matches[i].index + matches[i][0].length;
+     const end=i+1<matches.length?matches[i+1].index:text.length;
+     let q=cleanText(text.slice(start,end));
+     if(q.length>1) out.push({id:i,text:q,selected:false,marks:1,number:matches[i][1]});
+   }
+ }else{
+   // fallback: numbered lines even when PDF text extraction removed line breaks
+   const chunks=text.split(/(?=(?:પ્રશ્ન\s*)?\d{1,3}[\.\)\-:])/i);
+   chunks.forEach((c,i)=>{
+     c=cleanText(c).replace(/^(?:પ્રશ્ન\s*)?\d{1,3}[\.\)\-:]\s*/i,'');
+     if(c.length>2) out.push({id:i,text:c,selected:false,marks:1});
+   });
+ }
+ return out;
+}
+
+function renderQuestions(){
+ const box=document.getElementById('questions');
+ box.innerHTML='';
+ questions.forEach((q,i)=>{
+  const div=document.createElement('div');
+  div.className='question'+(q.selected?' selected':'');
+  div.id='q_'+i;
+  div.innerHTML=`
+   <div class="qtop">
+    <input type="checkbox" ${q.selected?'checked':''} onchange="toggleQ(${i},this.checked)">
+    <div class="qnum">પ્રશ્ન ${i+1}</div>
+    <div class="qtext">${escapeHTML(q.text)}</div>
+    <div class="marks">
+      <label>ગુણ</label>
+      <select onchange="changeMarks(${i},this.value)">
+       ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}" ${q.marks==n?'selected':''}>${n}</option>`).join('')}
+      </select>
+    </div>
+   </div>`;
+  box.appendChild(div);
+ });
+ updateTotal();
+}
+
+function escapeHTML(s){
+ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toggleQ(i,v){questions[i].selected=v;document.getElementById('q_'+i).classList.toggle('selected',v);updateTotal()}
+function changeMarks(i,v){questions[i].marks=Number(v);updateTotal()}
+function updateTotal(){
+ document.getElementById('totalMarks').textContent=questions.filter(q=>q.selected).reduce((a,q)=>a+q.marks,0);
+}
+function selectAll(){questions.forEach(q=>q.selected=true);renderQuestions()}
+function unselectAll(){questions.forEach(q=>q.selected=false);renderQuestions()}
+function setAllMarks(n){questions.forEach(q=>{if(q.selected)q.marks=n});renderQuestions()}
+
+function makePaper(){
+ const chosen=questions.filter(q=>q.selected);
+ if(!chosen.length){alert('ઓછામાં ઓછો એક પ્રશ્ન પસંદ કરો.');return}
+ const total=chosen.reduce((a,q)=>a+q.marks,0);
+ const school=escapeHTML(document.getElementById('school').value||'');
+ const std=escapeHTML(document.getElementById('std').value||'');
+ const subject=escapeHTML(document.getElementById('subject').value||'');
+ const exam=escapeHTML(document.getElementById('exam').value||'પ્રશ્નપત્ર');
+ const date=escapeHTML(document.getElementById('date').value||'');
+ const time=escapeHTML(document.getElementById('time').value||'');
+ let html=`<h2>${exam}</h2>`;
+ if(school)html+=`<h3>${school}</h3>`;
+ html+=`<div class="paper-meta">
+ <div><b>ધોરણ:</b> ${std}</div><div><b>વિષય:</b> ${subject}</div>
+ <div><b>તારીખ:</b> ${date}</div><div><b>સમય:</b> ${time}</div>
+ <div><b>કુલ પ્રશ્નો:</b> ${chosen.length}</div><div><b>કુલ ગુણ:</b> ${total}</div>
+ </div>`;
+ chosen.forEach((q,i)=>{
+   html+=`<div class="paper-q"><b>પ્રશ્ન ${i+1}.</b> ${escapeHTML(q.text)} <b>(${q.marks} ગુણ)</b></div>`;
+ });
+ document.getElementById('paper').innerHTML=html;
+ document.getElementById('paperCard').style.display='block';
+ document.getElementById('paperCard').scrollIntoView({behavior:'smooth'});
+}
+function clearAll(){
+ questions=[];
+ document.getElementById('questions').innerHTML='';
+ document.getElementById('questionsCard').style.display='none';
+ document.getElementById('paperCard').style.display='none';
+ document.getElementById('pdfFile').value='';
+ setStatus('');
+ updateTotal();
+}
+</script>
+</body>
+</html>

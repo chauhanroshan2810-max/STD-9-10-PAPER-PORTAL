@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STD 9-10 Paper Portal — PDF Scan & Manual Selection</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:#182230;font-family:Arial,"Noto Sans Gujarati",sans-serif}
+header{background:#123d78;color:#fff;padding:18px}.wrap{max-width:1200px;margin:auto;padding:16px}
+.card{background:#fff;border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 3px 15px #0001}
+h1,h2,h3{margin-top:0}h2{color:#123d78}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+label{font-weight:bold;font-size:14px}input,textarea,select{width:100%;margin-top:5px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}textarea{min-height:70px}
+button{border:0;border-radius:8px;padding:10px 15px;margin:4px;font-weight:bold;cursor:pointer}.blue{background:#1769e0;color:#fff}.green{background:#16834b;color:#fff}.orange{background:#e58a00;color:#fff}.red{background:#c62828;color:#fff}.gray{background:#e8eef6}
+.uploads{display:flex;flex-wrap:wrap;gap:10px}.uploadBox{border:2px dashed #9eb4d2;border-radius:12px;padding:15px;flex:1;min-width:250px;background:#f8fbff}
+.hidden{display:none}.status{padding:10px;background:#eef5ff;border-radius:8px;margin-top:10px}.section{border:2px solid #dce5f0;border-radius:12px;margin:14px 0;overflow:hidden}
+.sectionTitle{background:#edf4fc;padding:12px;font-weight:bold;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.sectionBody{padding:12px}
+.q{border:1px solid #d9e1eb;border-radius:9px;padding:11px;margin:8px 0;background:#fff;display:flex;gap:10px;align-items:flex-start}.q input{width:auto;margin-top:4px}.qtext{flex:1}.badge{background:#123d78;color:white;border-radius:15px;padding:4px 9px;font-size:12px;white-space:nowrap}
+.manualHead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.count{font-size:13px;color:#667085}
+.preview{background:#fff;padding:30px;min-height:300px}.paperSection{break-inside:avoid;margin-bottom:25px}.paperSection h3{border-bottom:2px solid #222;padding-bottom:7px}.instruction{font-weight:bold;margin:10px 0}.paperQ{margin:8px 0;line-height:1.5}
+.note{background:#fff8dc;border-left:4px solid #e0a000;padding:10px;margin:10px 0}
+@media print{header,.noPrint,.card:not(.printCard){display:none!important}body{background:white}.printCard{display:block!important;box-shadow:none}.preview{padding:0}}
+</style>
+</head>
+<body>
+<header><div class="wrap" style="padding:0"><h1>STD 9-10 Paper Portal</h1><div>Scan PDF • PDF Upload • OCR • Marks-wise Manual Selection</div></div></header>
+<div class="wrap">
+
+<div class="card noPrint">
+<h2>📄 PDF / Scan Upload</h2>
+<div class="uploads">
+ <div class="uploadBox">
+  <b>📑 Normal PDF Upload</b>
+  <p><small>Text/selectable PDF માટે</small></p>
+  <input id="pdfInput" type="file" accept=".pdf,application/pdf">
+ </div>
+ <div class="uploadBox">
+  <b>📷 Scan PDF / Scanned Paper</b>
+  <p><small>Scanned/image PDF માટે OCR</small></p>
+  <input id="scanInput" type="file" accept=".pdf,application/pdf,image/*">
+ </div>
+</div>
+<div id="status" class="status">હજુ કોઈ PDF upload નથી.</div>
+<div class="note">Scanned PDF માટે દરેક pageનું image OCR કરવામાં આવશે. OCR પછી પ્રશ્નો edit કરી શકો છો; OCRમાં ભૂલ હોય તો manual correction કરી શકશો.</div>
+</div>
+
+<div class="card noPrint">
+<h2>⚙️ Paper Settings</h2>
+<div class="grid">
+<label>Paper Title<input id="title" value="પ્રશ્નપત્ર"></label>
+<label>વિષય<input id="subject" placeholder="વિષય"></label>
+<label>ધોરણ<input id="std" placeholder="ધોરણ 9 / 10"></label>
+<label>સમય<input id="time" placeholder="2 કલાક"></label>
+</div>
+</div>
+
+<div class="card noPrint">
+<div class="manualHead"><h2 style="margin:0">☑️ Manual Question Selection</h2><button class="blue" onclick="selectAllVisible()">બધા Select</button><button class="gray" onclick="unselectAll()">બધા Unselect</button></div>
+<p class="count">Upload થયા પછી પ્રશ્નો અહીં <b>1 ગુણ, 2 ગુણ, 3 ગુણ, 4 ગુણ...</b> પ્રમાણે અલગ દેખાશે.</p>
+<div id="questionBank"><div class="note">PDF upload કર્યા પછી પ્રશ્નો અહીં દેખાશે.</div></div>
+</div>
+
+<div class="card noPrint">
+<h2>🧩 Paper Sections</h2>
+<p>Selected questionsને paperમાં કયા વિભાગમાં મૂકવા તે અહીં ગોઠવો. દરેક વિભાગની સૂચના અલગ રાખી શકો છો.</p>
+<div id="sections"></div>
+<button class="blue" onclick="addSection()">+ Section ઉમેરો</button>
+<button class="gray" onclick="makeDefaultSections()">1/2/3/4 ગુણના Sections બનાવો</button>
+</div>
+
+<div class="card noPrint">
+<h2>📝 Selected Questions</h2>
+<div id="selectedList"><div class="note">હજુ કોઈ પ્રશ્ન select નથી.</div></div>
+<button class="green" onclick="buildPreview()">Preview બનાવો</button>
+<button class="blue" onclick="window.print()">Print / Save PDF</button>
+</div>
+
+<div class="card printCard">
+<div id="preview" class="preview"><p style="text-align:center;color:#777">Preview અહીં આવશે.</p></div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" type="module"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+let bank=[], sections=[], sid=1, qid=1;
+
+const statusEl=document.getElementById('status');
+function status(x){statusEl.innerHTML=x}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+
+document.getElementById('pdfInput').addEventListener('change',e=>handlePDF(e.target.files[0],false));
+document.getElementById('scanInput').addEventListener('change',e=>handlePDF(e.target.files[0],true));
+
+async function handlePDF(file,scan){
+ if(!file)return;
+ bank=[];renderBank();status('⏳ PDF વાંચી રહ્યા છીએ...');
+ try{
+  const pdfjs=window.pdfjsLib || await import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs");
+  const data=await file.arrayBuffer(),pdf=await pdfjs.getDocument({data}).promise;
+  let all='';
+  if(scan){
+   for(let p=1;p<=pdf.numPages;p++){
+    status('⏳ Scan OCR: page '+p+' / '+pdf.numPages);
+    const page=await pdf.getPage(p),vp=page.getViewport({scale:1.8});
+    const canvas=document.createElement('canvas');canvas.width=vp.width;canvas.height=vp.height;
+    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+    const r=await Tesseract.recognize(canvas,'eng+guj', {logger:m=>{
+      if(m.status==='recognizing text') status('⏳ OCR page '+p+' / '+pdf.numPages+' — '+Math.round((m.progress||0)*100)+'%');
+    }});
+    all+='\\n'+r.data.text;
+   }
+  }else{
+   for(let p=1;p<=pdf.numPages;p++){
+    status('⏳ Text PDF: page '+p+' / '+pdf.numPages);
+    const page=await pdf.getPage(p),c=await page.getTextContent();
+    all+='\\n'+c.items.map(x=>x.str).join(' ');
+   }
+  }
+  parseQuestions(all);
+  status('✅ '+bank.length+' પ્રશ્નો મળ્યા. હવે marks પ્રમાણે એક-એક પ્રશ્ન select કરો.');
+ }catch(err){console.error(err);status('❌ PDF વાંચવામાં સમસ્યા આવી. Scanned PDF માટે Scan PDF button ફરી અજમાવો.')}
+}
+
+function parseQuestions(text){
+ bank=[];
+ const lines=text.split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
+ let currentMarks=1;
+ let currentInstruction='';
+ let pending=null;
+ const flush=()=>{if(pending){bank.push({id:qid++,marks:currentMarks,text:pending,selected:false,instruction:currentInstruction});pending=null}};
+ for(let line of lines){
+  let m=line.match(/(?:^|\s)(\d+)\s*(?:marks?|ગુણ)(?:\s|$)/i);
+  if(m)currentMarks=parseInt(m[1]);
+  if(/^(વિભાગ|section|part)\b/i.test(line)){
+    const mm=line.match(/(\d+)\s*(?:marks?|ગુણ)/i); if(mm)currentMarks=+mm[1];
+    currentInstruction=line; continue;
+  }
+  let q=line.match(/^(?:Q\.?\s*)?(\d{1,3})\s*[\.\):\-]\s*(.+)$/i);
+  if(q){flush();pending=q[2];continue}
+  if(pending && line.length>2){pending+=' '+line}else if(!pending && line.length>8 && (/^(નીચે|answer|choose|following|પ્રશ્ન)/i.test(line)))currentInstruction=line;
+ }
+ flush();
+ if(!bank.length){
+  lines.forEach((x)=>{if(x.length>5)bank.push({id:qid++,marks:currentMarks,text:x,selected:false,instruction:currentInstruction})});
+ }
+ renderBank();
+}
+
+function addManualQuestion(marks){
+ bank.push({id:qid++,marks:Number(marks),text:'નવો પ્રશ્ન',selected:false,instruction:''});renderBank();
+}
+
+function renderBank(){
+ const root=document.getElementById('questionBank');
+ if(!bank.length){root.innerHTML='<div class="note">કોઈ પ્રશ્ન મળ્યો નથી.</div>';renderSelected();return}
+ const groups={};bank.forEach(q=>(groups[q.marks]??=[]).push(q));
+ root.innerHTML='';
+ Object.keys(groups).sort((a,b)=>a-b).forEach(mark=>{
+  const sec=document.createElement('div');sec.className='section';
+  sec.innerHTML='<div class="sectionTitle"><span>⭐ '+mark+' ગુણના પ્રશ્નો</span><span class="count">'+groups[mark].length+' પ્રશ્ન</span></div><div class="sectionBody" id="g'+mark+'"></div>';
+  root.appendChild(sec);
+  const box=sec.querySelector('.sectionBody');
+  groups[mark].forEach(q=>{
+   const d=document.createElement('div');d.className='q';
+   d.innerHTML='<input type="checkbox" '+(q.selected?'checked':'')+' onchange="toggleQ('+q.id+',this.checked)"><div class="qtext"><textarea oninput="editQ('+q.id+',this.value)">'+esc(q.text)+'</textarea></div><span class="badge">'+mark+' ગુણ</span>';
+   box.appendChild(d);
+  });
+  const add=document.createElement('button');add.className='gray';add.textContent='+ '+mark+' ગુણનો પ્રશ્ન';add.onclick=()=>addManualQuestion(mark);box.appendChild(add);
+ });
+ renderSelected();
+}
+
+function toggleQ(id,v){const q=bank.find(x=>x.id===id);if(q)q.selected=v;renderSelected()}
+function editQ(id,v){const q=bank.find(x=>x.id===id);if(q)q.text=v}
+function selectAllVisible(){bank.forEach(q=>q.selected=true);renderBank()}
+function unselectAll(){bank.forEach(q=>q.selected=false);renderBank()}
+
+function renderSelected(){
+ const el=document.getElementById('selectedList'),a=bank.filter(q=>q.selected);
+ if(!a.length){el.innerHTML='<div class="note">હજુ કોઈ પ્રશ્ન select નથી.</div>';return}
+ el.innerHTML=a.map((q,i)=>'<div class="q"><b>'+q.marks+' ગુણ</b><div class="qtext">'+esc(q.text)+'</div><button class="red" onclick="toggleQ('+q.id+',false);renderBank()">Remove</button></div>').join('');
+}
+
+function addSection(data={}){
+ sections.push({id:sid++,name:data.name||'નવો વિભાગ',marks:data.marks||1,count:data.count||5,instruction:data.instruction||''});
+ renderSections();
+}
+function makeDefaultSections(){
+ sections=[];
+ [1,2,3,4].forEach((m,i)=>sections.push({id:sid++,name:'વિભાગ-'+String.fromCharCode(65+i)+' : '+m+' ગુણ',marks:m,count:5,instruction:m+' ગુણના પ્રશ્નોના જવાબ આપો.'}));
+ renderSections();
+}
+function renderSections(){
+ const root=document.getElementById('sections');root.innerHTML='';
+ sections.forEach(s=>{
+  const d=document.createElement('div');d.className='section';
+  d.innerHTML='<div class="sectionTitle">'+esc(s.name)+' <button class="red" onclick="delSection('+s.id+')">Delete</button></div><div class="sectionBody"><div class="grid"><label>વિભાગ નામ<input value="'+esc(s.name)+'" oninput="updS('+s.id+',\'name\',this.value)"></label><label>Marks / Question<input type="number" value="'+s.marks+'" min="1" oninput="updSN('+s.id+',\'marks\',this.value)"></label><label>કેટલા પ્રશ્ન<input type="number" value="'+s.count+'" min="1" oninput="updSN('+s.id+',\'count\',this.value)"></label></div><label>આ વિભાગની સૂચના<textarea oninput="updS('+s.id+',\'instruction\',this.value)">'+esc(s.instruction)+'</textarea></label></div>';
+  root.appendChild(d);
+ });
+}
+function updS(id,k,v){let s=sections.find(x=>x.id===id);if(s)s[k]=v}
+function updSN(id,k,v){let s=sections.find(x=>x.id===id);if(s)s[k]=Math.max(1,+v||1);renderSections()}
+function delSection(id){sections=sections.filter(x=>x.id!==id);renderSections()}
+
+function buildPreview(){
+ const selected=bank.filter(q=>q.selected),title=esc(document.getElementById('title').value),subject=esc(document.getElementById('subject').value),std=esc(document.getElementById('std').value),time=esc(document.getElementById('time').value);
+ let h='<h1 style="text-align:center">'+title+'</h1><div style="text-align:center;margin-bottom:20px">'+[subject,std,time].filter(Boolean).join(' • ')+'</div>';
+ sections.forEach(s=>{
+  let pool=selected.filter(q=>q.marks===Number(s.marks)).slice(0,s.count);
+  h+='<div class="paperSection"><h3>'+esc(s.name)+' <span style="float:right">['+(pool.length*s.marks)+' ગુણ]</span></h3>';
+  if(s.instruction)h+='<div class="instruction">'+esc(s.instruction).replace(/\n/g,'<br>')+'</div>';
+  pool.forEach((q,i)=>h+='<div class="paperQ"><b>'+(i+1)+'.</b> '+esc(q.text)+' <span style="float:right">('+s.marks+')</span></div>');
+  if(!pool.length)h+='<div style="color:#c62828">આ marksના selected પ્રશ્નો નથી.</div>';
+  h+='</div>';
+ });
+ document.getElementById('preview').innerHTML=h;
+}
+makeDefaultSections();
+</script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="gu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STD 9-10 Paper Portal</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:#172033;font-family:Arial,sans-serif}
+header{background:#16447f;color:#fff;padding:18px 16px}header h1{margin:0;font-size:22px}
+main{max-width:1100px;margin:auto;padding:14px}.card{background:#fff;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 2px 10px #0001}
+h2{margin:0 0 12px;color:#16447f;font-size:19px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+label{font-weight:bold;font-size:14px}input,textarea{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:7px;margin-top:5px;font:inherit}textarea{min-height:65px}
+button{border:0;border-radius:7px;padding:10px 13px;margin:3px;font-weight:bold;cursor:pointer}.blue{background:#1769e0;color:#fff}.green{background:#16834b;color:#fff}.gray{background:#e7edf5}.red{background:#c62828;color:#fff}
+.layout{display:grid;grid-template-columns:190px 1fr;gap:14px}.side{border:1px solid #d5deea;border-radius:10px;padding:10px;height:max-content;position:sticky;top:10px}
+.mb{display:block;width:100%;text-align:left;background:#eef3f9;margin:5px 0}.mb.active{background:#16447f;color:#fff}
+.q{border:1px solid #d9e1ea;border-radius:8px;padding:9px;margin:7px 0;display:flex;gap:8px;align-items:flex-start}.q input{width:auto;margin-top:4px}.qt{flex:1}.badge{background:#16447f;color:#fff;padding:4px 8px;border-radius:12px;font-size:12px;white-space:nowrap}
+.section{border:1px solid #d5deea;border-radius:10px;margin:10px 0;overflow:hidden}.sh{background:#eef4fb;padding:10px;font-weight:bold}.sb{padding:10px}
+.note{background:#fff8db;border-left:4px solid #d99a00;padding:10px;border-radius:5px}
+#preview{background:#fff;min-height:200px;padding:28px}.pq{margin:8px 0}.ps{margin-bottom:25px;break-inside:avoid}.ps h3{border-bottom:2px solid #222;padding-bottom:5px}
+@media(max-width:650px){.layout{grid-template-columns:1fr}.side{position:static}}
+@media print{header,.noprint{display:none!important}body{background:#fff}main{padding:0}.card{box-shadow:none}.print{display:block!important}}
+</style>
+</head>
+<body>
+<header><h1>STD 9-10 Paper Portal</h1><div>Marks-wise Question Selection</div></header>
+<main>
+
+<div class="card noprint">
+<h2>📄 PDF / Scan Upload</h2>
+<div class="grid">
+<label>Normal PDF<input id="pdf" type="file" accept=".pdf,application/pdf"></label>
+<label>Scan PDF / Image<input id="scan" type="file" accept=".pdf,application/pdf,image/*"></label>
+</div>
+<div id="msg" class="note" style="margin-top:10px">PDF upload કર્યા પછી પ્રશ્નો અહીં આવશે.</div>
+</div>
+
+<div class="card noprint">
+<h2>⚙️ Paper Settings</h2>
+<div class="grid">
+<label>Paper Title<input id="title" value="પ્રશ્નપત્ર"></label>
+<label>વિષય<input id="subject" placeholder="વિષય"></label>
+<label>ધોરણ<input id="std" placeholder="ધોરણ 9 / 10"></label>
+<label>સમય<input id="time" placeholder="2 કલાક"></label>
+</div>
+</div>
+
+<div class="card noprint">
+<div class="layout">
+<aside class="side">
+<h3 style="margin:3px">ગુણ પસંદ કરો</h3>
+<div id="marks"></div>
+<div style="display:flex;gap:4px"><input id="newmark" type="number" min="1" placeholder="ગુણ" style="margin:0"><button class="blue" onclick="addMark()">+</button></div>
+<small>પોતાના marks પણ લખી શકો.</small>
+</aside>
+<section>
+<h2>☑️ Manual Question Selection</h2>
+<div id="bank"><div class="note">ડાબી બાજુના 1/2/3/4 ગુણ પસંદ કરો.</div></div>
+</section>
+</div>
+</div>
+
+<div class="card noprint">
+<h2>🧩 Paper Sections</h2>
+<div id="sections"></div>
+<button class="blue" onclick="addSection()">+ Section</button>
+<button class="gray" onclick="defaults()">1/2/3/4 ગુણ</button>
+</div>
+
+<div class="card noprint">
+<button class="green" onclick="preview()">Preview બનાવો</button>
+<button class="blue" onclick="window.print()">Print / Save PDF</button>
+</div>
+
+<div class="card print"><div id="preview"><div class="note">Preview અહીં દેખાશે.</div></div></div>
+</main>
+
+<script>
+(function(){
+var questions=[], marks=[1,2,3,4], active=1, sections=[], sid=1, qid=1;
+
+function esc(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]})}
+function el(id){return document.getElementById(id)}
+function msg(t){el('msg').textContent=t}
+
+window.addMark=function(){
+ var v=parseInt(el('newmark').value,10); if(!v||v<1)return;
+ if(marks.indexOf(v)<0)marks.push(v);marks.sort(function(a,b){return a-b});active=v;el('newmark').value='';draw();
+}
+function drawMarks(){
+ var m=el('marks');m.innerHTML='';
+ marks.forEach(function(x){
+  var b=document.createElement('button');b.className='mb'+(x===active?' active':'');
+  b.innerHTML=x+' ગુણ <small>('+questions.filter(function(q){return q.marks===x}).length+')</small>';
+  b.onclick=function(){active=x;draw()};m.appendChild(b);
+ });
+}
+function draw(){
+ drawMarks();var b=el('bank');b.innerHTML='';
+ var list=questions.filter(function(q){return q.marks===active});
+ var box=document.createElement('div');box.className='section';
+ box.innerHTML='<div class="sh">'+active+' ગુણના પ્રશ્નો — '+list.length+'</div><div class="sb"></div>';
+ b.appendChild(box);var sb=box.querySelector('.sb');
+ list.forEach(function(q){
+  var d=document.createElement('div');d.className='q';
+  var cb=document.createElement('input');cb.type='checkbox';cb.checked=q.selected;cb.onchange=function(){q.selected=cb.checked};
+  var ta=document.createElement('textarea');ta.value=q.text;ta.oninput=function(){q.text=ta.value};
+  var sp=document.createElement('span');sp.className='badge';sp.textContent=active+' ગુણ';
+  d.appendChild(cb);var t=document.createElement('div');t.className='qt';t.appendChild(ta);d.appendChild(t);d.appendChild(sp);sb.appendChild(d);
+ });
+ var add=document.createElement('button');add.className='gray';add.textContent='+ '+active+' ગુણનો પ્રશ્ન';
+ add.onclick=function(){questions.push({id:qid++,marks:active,text:'નવો પ્રશ્ન',selected:false});draw()};sb.appendChild(add);
+}
+window.addSection=function(){
+ sections.push({id:sid++,name:'વિભાગ',marks:1,count:5,instruction:'આ વિભાગના પ્રશ્નોના જવાબ આપો.'});drawSections()
+}
+window.defaults=function(){
+ sections=[];[1,2,3,4].forEach(function(m,i){sections.push({id:sid++,name:'વિભાગ '+String.fromCharCode(65+i)+' : '+m+' ગુણ',marks:m,count:5,instruction:m+' ગુણના પ્રશ્નોના જવાબ આપો.'})});drawSections()
+}
+function drawSections(){
+ var r=el('sections');r.innerHTML='';
+ sections.forEach(function(s){
+  var d=document.createElement('div');d.className='section';
+  d.innerHTML='<div class="sh">'+esc(s.name)+'</div><div class="sb"><div class="grid"><label>વિભાગ<input value="'+esc(s.name)+'"></label><label>દરેક પ્રશ્નના ગુણ<input type="number" min="1" value="'+s.marks+'"></label><label>કેટલા પ્રશ્ન<input type="number" min="1" value="'+s.count+'"></label></div><label>સૂચના<textarea>'+esc(s.instruction)+'</textarea></label><button class="red">Delete</button></div>';
+  var inputs=d.querySelectorAll('input'),ta=d.querySelector('textarea'),del=d.querySelector('.red');
+  inputs[0].oninput=function(){s.name=this.value};inputs[1].oninput=function(){s.marks=Math.max(1,+this.value||1)};
+  inputs[2].oninput=function(){s.count=Math.max(1,+this.value||1)};ta.oninput=function(){s.instruction=this.value};
+  del.onclick=function(){sections=sections.filter(function(x){return x.id!==s.id});drawSections()};r.appendChild(d);
+ });
+}
+window.preview=function(){
+ var h='<h1 style="text-align:center">'+esc(el('title').value)+'</h1><div style="text-align:center">'+[el('subject').value,el('std').value,el('time').value].filter(Boolean).map(esc).join(' • ')+'</div>';
+ sections.forEach(function(s){
+  var a=questions.filter(function(q){return q.selected&&q.marks===+s.marks}).slice(0,+s.count);
+  h+='<div class="ps"><h3>'+esc(s.name)+' <span style="float:right">['+(a.length*s.marks)+' ગુણ]</span></h3><b>'+esc(s.instruction)+'</b>';
+  a.forEach(function(q,i){h+='<div class="pq"><b>'+(i+1)+'.</b> '+esc(q.text)+' <span style="float:right">('+s.marks+')</span></div>'});
+  if(!a.length)h+='<p style="color:#c62828">આ વિભાગ માટે પ્રશ્ન select નથી.</p>';h+='</div>';
+ });
+ el('preview').innerHTML=h;
+}
+function parseText(text){
+ questions=[];var lines=text.split(/\n+/).map(function(x){return x.trim()}).filter(Boolean),cm=1;
+ lines.forEach(function(line){
+  var mm=line.match(/(\d+)\s*(?:marks?|ગુણ)/i);if(mm){cm=+mm[1];if(marks.indexOf(cm)<0)marks.push(cm)}
+  var q=line.match(/^(?:Q\.?\s*)?(\d+)[\.\):\-]\s*(.+)$/i);
+  if(q)questions.push({id:qid++,marks:cm,text:q[2],selected:false});
+ });
+ if(!questions.length)lines.forEach(function(x){if(x.length>5)questions.push({id:qid++,marks:cm,text:x,selected:false})});
+ marks.sort(function(a,b){return a-b});draw();msg('પ્રશ્નો મળ્યા: '+questions.length);
+}
+function readFile(file,scan){
+ if(!file)return;msg('PDF વાંચવાનું શરૂ થયું...');
+ if(scan){
+  msg('Scan PDF પસંદ થયું. OCR માટે browserમાં internet/library જરૂરી છે. હાલ manual mode તૈયાર છે.');
+  return;
+ }
+ if(file.type!=='application/pdf'){msg('PDF file પસંદ કરો.');return}
+ var r=new FileReader();r.onload=function(){
+  var raw=new Uint8Array(r.result);
+  if(window.pdfjsLib){
+   pdfjsLib.getDocument({data:raw}).promise.then(function(pdf){
+    var all='',jobs=[];
+    for(var p=1;p<=pdf.numPages;p++)jobs.push(pdf.getPage(p).then(function(page){return page.getTextContent().then(function(c){return c.items.map(function(x){return x.str}).join(' ')})}));
+    Promise.all(jobs).then(function(a){parseText(a.join('\\n'));});
+   }).catch(function(){msg('PDF વાંચી શકાયું નથી. Scan PDF માટે Scan button વાપરો.')});
+  }else{
+   msg('Normal PDF reader load થયો નથી. Manual selection ચાલુ છે.');
+  }
+ };r.readAsArrayBuffer(file);
+}
+el('pdf').onchange=function(){readFile(this.files[0],false)};
+el('scan').onchange=function(){readFile(this.files[0],true)};
+defaults();draw();drawSections();
+})();
+</script>
+</body>
+</html>

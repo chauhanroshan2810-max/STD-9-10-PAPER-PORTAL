@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="gu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STD 9-10 Question Paper Portal</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f7f9;font-family:Arial,"Noto Sans Gujarati",sans-serif;color:#17212b}
+header{background:#123d5b;color:#fff;text-align:center;padding:16px}header h1{margin:0;font-size:22px}header p{margin:6px 0}
+.wrap{max-width:1100px;margin:auto;padding:14px}.card{background:#fff;border-radius:12px;padding:15px;margin:12px 0;box-shadow:0 2px 10px #0001}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+button,.filebtn{border:0;border-radius:8px;padding:10px 14px;font-weight:bold;cursor:pointer}.blue{background:#1769aa;color:#fff}.green{background:#16834b;color:#fff}.orange{background:#e67e22;color:#fff}.gray{background:#e7edf1}.red{background:#c0392b;color:#fff}
+.filebtn{display:inline-block}.filebtn input{display:none}
+input[type=number],input[type=text],select,textarea{font:inherit;border:1px solid #ccd5dc;border-radius:8px;padding:9px}textarea{width:100%;min-height:62px}
+.status{margin-top:10px;background:#eef5fa;border-radius:8px;padding:10px;white-space:pre-wrap}
+.small{font-size:13px;color:#63717c}.qblock{display:flex;gap:10px;align-items:flex-start;border:1px solid #d4dde4;border-radius:10px;padding:12px;margin:9px 0;background:#fff}
+.qblock:hover{background:#f7fbfe}.qblock input{width:19px;height:19px;margin-top:4px;flex:none}.qtext{flex:1;white-space:pre-wrap;line-height:1.55}
+.section{border:1px solid #ccd5dc;border-radius:10px;padding:13px;margin-top:10px}.selq{white-space:pre-wrap;border:1px solid #ddd;border-radius:8px;padding:9px;margin-top:7px}
+@media print{.noPrint{display:none!important}body{background:#fff}.card{box-shadow:none}.section{page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<header><h1>STD 9-10 Question Paper Portal</h1><p>PDF / Scan PDF → દરેક પ્રશ્ન માટે અલગ checkbox</p></header>
+<div class="wrap">
+
+<div class="card noPrint">
+<h2>1. PDF પ્રશ્નો લાવો</h2>
+<div class="row">
+<label class="filebtn blue">📄 PDF Upload<input id="pdfInput" type="file" accept=".pdf,application/pdf"></label>
+<label class="filebtn orange">📷 Scan PDF OCR<input id="scanInput" type="file" accept=".pdf,application/pdf,image/png,image/jpeg,image/jpg"></label>
+<button class="gray" id="clearQ">પ્રશ્નો સાફ કરો</button>
+</div>
+<div class="small" style="margin-top:9px">
+Scan PDF OCR માટે Internet ચાલુ હોવું જરૂરી છે. Scanમાં દરેક page image બનાવી OCR થશે.
+</div>
+<div id="status" class="status">PDF પસંદ કરો.</div>
+</div>
+
+<div class="card noPrint">
+<h2>2. Marks Section</h2>
+<div class="row">
+<input id="marks" type="number" min="1" placeholder="Marks">
+<input id="secname" type="text" placeholder="Section નામ">
+<button class="green" id="addSec">+ Section</button>
+</div>
+<div id="sections"></div>
+</div>
+
+<div class="card">
+<h2>3. પ્રશ્ન પસંદ કરો</h2>
+<div class="row noPrint">
+<select id="target"><option value="">Section બનાવો</option></select>
+<button class="blue" id="addSelected">✓ Selected પ્રશ્નો ઉમેરો</button>
+</div>
+<div id="count" class="small" style="margin-top:9px"></div>
+<div id="questions"></div>
+</div>
+
+<div class="card noPrint">
+<button class="blue" onclick="window.print()">🖨️ Print / Save PDF</button>
+<button class="red" id="reset">Reset</button>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+const $=id=>document.getElementById(id);
+let questions=[],sections=[],sid=1;
+
+function setStatus(s){$("status").textContent=s}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+
+/* NEW QUESTION = printed question number.
+   All lines until the next number belong to the same question.
+   Thus Q1 + A/B/C/D = ONE checkbox. */
+function isQuestionStart(line){
+  const s=line.trim();
+  return /^(?:પ્રશ્ન\s*)?(?:Q(?:uestion)?\s*)?\d{1,4}\s*[.)\-:]/i.test(s)
+      || /^પ્રશ્ન\s*\d{1,4}\b/i.test(s);
+}
+function isInstruction(block){
+  const f=block.split("\n").map(x=>x.trim()).filter(Boolean)[0]||"";
+  return /^(સૂચના|સૂચનાઓ|નોંધ|instruction|instructions|વિભાગ|section)\b/i.test(f);
+}
+function parseQuestions(raw){
+  const lines=raw.replace(/\r/g,"").split("\n").map(x=>x.replace(/\u00a0/g," ").trim()).filter(Boolean);
+  const blocks=[];let cur=null;
+  for(const line of lines){
+    if(isQuestionStart(line)){
+      if(cur)blocks.push(cur.join("\n"));
+      cur=[line];
+    }else if(cur){cur.push(line)}
+  }
+  if(cur)blocks.push(cur.join("\n"));
+  return blocks.filter(b=>!isInstruction(b)).map((text,i)=>({id:i+1,text}));
+}
+
+async function normalPDF(file){
+  const data=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data}).promise;
+  let raw="";
+  for(let n=1;n<=pdf.numPages;n++){
+    setStatus("PDF વાંચી રહ્યા છીએ... Page "+n+" / "+pdf.numPages);
+    const page=await pdf.getPage(n),tc=await page.getTextContent();
+    let lastY=null;
+    for(const it of tc.items){
+      const y=it.transform[5];
+      if(lastY!==null && Math.abs(y-lastY)>5)raw+="\n";
+      raw+=it.str+" ";lastY=y;
+    }
+    raw+="\n";
+  }
+  return raw;
+}
+
+async function pdfPages(file){
+  const data=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data}).promise;
+  const out=[];
+  for(let n=1;n<=pdf.numPages;n++){
+    setStatus("Scan PDF તૈયાર... Page "+n+" / "+pdf.numPages);
+    const page=await pdf.getPage(n);
+    const vp=page.getViewport({scale:2.2});
+    const c=document.createElement("canvas");
+    c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);
+    await page.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;
+    out.push(c);
+  }
+  return out;
+}
+
+function loadScript(src){
+  return new Promise((resolve,reject)=>{
+    const s=document.createElement("script");
+    s.src=src;s.onload=resolve;s.onerror=()=>reject(new Error("OCR library load થઈ નથી"));
+    document.head.appendChild(s);
+  });
+}
+
+async function getTesseract(){
+  if(window.Tesseract)return;
+  setStatus("OCR engine load થઈ રહ્યું છે...");
+  await loadScript("https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js");
+  if(!window.Tesseract)throw new Error("Tesseract OCR load થયું નથી");
+}
+
+async function scanPDF(file){
+  await getTesseract();
+  let pages=[];
+  if(file.type && file.type.startsWith("image/")){
+    const img=await createImageBitmap(file);
+    const c=document.createElement("canvas");c.width=img.width;c.height=img.height;
+    c.getContext("2d").drawImage(img,0,0);pages=[c];
+  }else{
+    pages=await pdfPages(file);
+  }
+  const worker=await Tesseract.createWorker({
+    logger:m=>{
+      if(m&&m.status){
+        const p=typeof m.progress==="number"?" "+Math.round(m.progress*100)+"%":"";
+        setStatus("OCR: "+m.status+p);
+      }
+    }
+  });
+  let raw="";
+  try{
+    await worker.loadLanguage("eng+guj");
+    await worker.initialize("eng+guj");
+    for(let i=0;i<pages.length;i++){
+      setStatus("OCR પ્રશ્નો વાંચી રહ્યું છે... Page "+(i+1)+" / "+pages.length);
+      const r=await worker.recognize(pages[i]);
+      raw+="\n"+(r.data.text||"");
+    }
+  }finally{
+    await worker.terminate();
+  }
+  return raw;
+}
+
+function renderQuestions(){
+  $("questions").innerHTML="";
+  $("count").textContent=questions.length
+    ? "કુલ "+questions.length+" પ્રશ્ન મળ્યા — "+questions.length+" checkbox."
+    : "કોઈ numbered પ્રશ્ન મળ્યો નથી.";
+  questions.forEach((q,i)=>{
+    const d=document.createElement("label");
+    d.className="qblock";
+    d.innerHTML='<input type="checkbox" class="qcheck" data-index="'+i+'"><div class="qtext">'+esc(q.text)+'</div>';
+    $("questions").appendChild(d);
+  });
+}
+
+function renderSections(){
+  $("sections").innerHTML="";
+  $("target").innerHTML=sections.length?"":"<option value=''>Section બનાવો</option>";
+  sections.forEach(s=>{
+    const o=document.createElement("option");o.value=s.id;o.textContent=s.name+" — "+s.marks+" Marks";$("target").appendChild(o);
+    const d=document.createElement("div");d.className="section";
+    d.innerHTML="<b>"+esc(s.name)+"</b> <span class='small'>("+s.marks+" Marks)</span>"+
+      "<div style='margin-top:8px'><textarea data-ins='"+s.id+"' placeholder='આ Sectionની સૂચના લખો...'>"+esc(s.instruction)+"</textarea></div>"+
+      "<div class='small' style='margin-top:7px'>પસંદ પ્રશ્નો: "+s.questions.length+"</div>"+
+      s.questions.map(q=>"<div class='selq'>"+esc(q)+"</div>").join("")+
+      "<button class='red noPrint' data-del='"+s.id+"' style='margin-top:8px'>Delete</button>";
+    $("sections").appendChild(d);
+  });
+  document.querySelectorAll("[data-ins]").forEach(x=>x.oninput=()=>{
+    const s=sections.find(a=>a.id==x.dataset.ins);if(s)s.instruction=x.value;
+  });
+  document.querySelectorAll("[data-del]").forEach(x=>x.onclick=()=>{
+    sections=sections.filter(a=>a.id!=x.dataset.del);renderSections();
+  });
+}
+
+$("pdfInput").onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    questions=parseQuestions(await normalPDF(f));renderQuestions();
+    setStatus("✓ PDFમાંથી "+questions.length+" પ્રશ્ન મળ્યા.");
+  }catch(err){setStatus("❌ PDF error: "+err.message)}
+  e.target.value="";
+};
+
+$("scanInput").onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    if(!f.type.includes("pdf")&&!f.type.includes("image"))throw new Error("PDF અથવા image પસંદ કરો.");
+    const raw=await scanPDF(f);
+    questions=parseQuestions(raw);renderQuestions();
+    if(questions.length) setStatus("✓ Scan OCR પૂર્ણ. "+questions.length+" પ્રશ્ન મળ્યા — દરેક પ્રશ્ન માટે અલગ checkbox.");
+    else setStatus("OCR પૂર્ણ થયું પરંતુ પ્રશ્ન નંબર ઓળખાયા નથી. Scanમાં 1., 2., 3. જેવા નંબર સ્પષ્ટ હોવા જોઈએ.");
+  }catch(err){
+    console.error(err);
+    setStatus("❌ Scan PDF OCR error: "+(err.message||err)+"\nInternet ચાલુ છે કે નહીં ચેક કરો.");
+  }
+  e.target.value="";
+};
+
+$("addSec").onclick=()=>{
+  const m=parseInt($("marks").value,10);if(!m)return alert("Marks નાખો.");
+  sections.push({id:sid++,marks:m,name:$("secname").value.trim()||m+" Marks Section",instruction:"",questions:[]});
+  $("marks").value="";$("secname").value="";renderSections();
+};
+
+$("addSelected").onclick=()=>{
+  const s=sections.find(x=>x.id==$("target").value);
+  if(!s)return alert("Section પસંદ કરો.");
+  document.querySelectorAll(".qcheck:checked").forEach(c=>{
+    const q=questions[+c.dataset.index];
+    if(q&&!s.questions.includes(q.text))s.questions.push(q.text);
+    c.checked=false;
+  });
+  renderSections();
+};
+
+$("clearQ").onclick=()=>{questions=[];renderQuestions();setStatus("પ્રશ્નો સાફ કર્યા.")};
+$("reset").onclick=()=>{if(confirm("બધું reset કરવું છે?")){questions=[];sections=[];sid=1;renderQuestions();renderSections();setStatus("Reset થયું.")}};
+renderSections();renderQuestions();
+</script>
+</body>
+</html>

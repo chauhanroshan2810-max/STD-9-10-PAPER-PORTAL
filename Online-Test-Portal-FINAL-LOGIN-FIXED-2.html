@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Online MCQ Test Portal - Login Fixed</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#eef7ff,#fff5fb);color:#172033}
+header{background:linear-gradient(90deg,#4f46e5,#7c3aed);color:#fff;padding:24px 16px;text-align:center}
+header h1{margin:0 0 7px;font-size:28px}
+.container{max-width:1100px;margin:auto;padding:18px}
+.hero,.card,.dashboard{background:#fff;border-radius:18px;padding:20px;box-shadow:0 8px 28px #00000012;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px}
+.roleCard{cursor:pointer;transition:.2s}.roleCard:hover{transform:translateY(-2px)}
+.student{border-top:5px solid #2563eb}.teacher{border-top:5px solid #f59e0b}.admin{border-top:5px solid #ef4444}
+.hidden{display:none!important}
+.input,select,textarea{width:100%;padding:12px;border:1px solid #d7dce5;border-radius:10px;margin:6px 0 12px;font-size:15px;background:#fff}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+button{border:0;border-radius:10px;padding:11px 16px;font-size:15px;font-weight:bold;cursor:pointer;background:#4f46e5;color:#fff}
+button:hover{opacity:.9}.secondary{background:#64748b}.success{background:#16a34a}.warning{background:#d97706}.danger{background:#dc2626}
+.msg{padding:10px;border-radius:10px;margin:10px 0;background:#f1f5f9}.error{background:#fee2e2;color:#991b1b}.ok{background:#dcfce7;color:#166534}
+.muted{color:#667085;font-size:13px}.topbar{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{background:#f8fafc;border-radius:14px;padding:16px;text-align:center}.stat b{font-size:26px;display:block}
+.tableWrap{overflow:auto}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:10px;border-bottom:1px solid #e5e7eb;text-align:left;white-space:nowrap}
+.question{background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;padding:16px;margin:12px 0}
+.option{display:block;padding:10px;margin:7px 0;background:#fff;border:1px solid #e5e7eb;border-radius:10px}
+.timer{font-size:21px;font-weight:bold;color:#dc2626}.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#ede9fe;color:#5b21b6;font-size:12px;font-weight:bold}
+.recaptcha{min-height:78px;margin:6px 0}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tabs button{background:#e5e7eb;color:#111827}.tabs button.active{background:#4f46e5;color:#fff}
+.qRow{border:1px solid #e5e7eb;border-radius:14px;padding:14px;margin:10px 0}
+.optionGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:650px){.optionGrid{grid-template-columns:1fr}header h1{font-size:23px}}
+.pdfq{border:1px solid #dbe2ea;border-radius:12px;padding:12px;margin:8px 0;background:#fff}.pdfq.selected{background:#ecfdf5;border-color:#22c55e}.secbox{border:1px solid #dbe2ea;border-radius:12px;padding:12px;margin:10px 0}.mini{width:100%;padding:9px;border:1px solid #d7dce5;border-radius:8px}.headerPreview{border:2px solid #172033;border-radius:8px;padding:14px;margin:10px 0;background:#fff}.markBadge{font-weight:bold;background:#fef3c7;padding:4px 8px;border-radius:7px}.pdfq label{display:flex;gap:8px;align-items:flex-start} </style>
+</head>
+<body>
+<header><h1>📚 Smart Online MCQ Test Portal</h1><div>Student • Teacher • Admin | Instant Result</div></header>
+
+<div class="container">
+<section id="home" class="hero">
+<h2>Online Test Portal</h2>
+<p>ધોરણ 10 માટે ઓનલાઈન MCQ ટેસ્ટ, Timer અને તરત Result.</p>
+<div class="grid">
+<div class="card roleCard student" onclick="openLogin('student')"><h3>🎓 Student</h3><p>Email + Passwordથી Login/Signup કરો.</p><button>Student Login</button></div>
+<div class="card roleCard teacher" onclick="openLogin('teacher')"><h3>👨‍🏫 Teacher</h3><p>Email + Passwordથી Teacher Login/Signup કરો.</p><button class="warning">Teacher Login / Signup</button></div>
+<div class="card roleCard admin" onclick="openLogin('admin')"><h3>🛠️ Admin</h3><p>Teachers, Students, Tests અને Resultsનું સંચાલન.</p><button class="danger">Admin Login</button></div>
+</div>
+</section>
+
+<section id="loginPanel" class="card hidden">
+<div class="topbar"><h2 id="loginTitle">Login</h2><button class="secondary" onclick="goHome()">← Home</button></div>
+
+<div id="phoneLogin" class="hidden">
+<label id="phoneNameLabel">Name</label>
+<input id="phoneName" class="input" placeholder="તમારું નામ">
+<label>Email</label>
+<input id="userEmail" class="input" type="email" placeholder="example@gmail.com">
+<label>Password</label>
+<input id="userPassword" class="input" type="password" placeholder="ઓછામાં ઓછા 6 અક્ષર">
+<div class="actions">
+<button onclick="emailSignup()">📝 Signup</button>
+<button class="success" onclick="emailLogin()">🔐 Login</button>
+</div>
+<div id="phoneMsg" class="msg"></div>
+<p id="phoneHelp" class="muted"></p>
+</div>
+
+<div id="adminLogin" class="hidden">
+<label>Admin Email</label><input id="adminEmail" class="input" type="email" placeholder="admin@example.com">
+<label>Password</label><input id="adminPassword" class="input" type="password" placeholder="Password">
+<button onclick="adminSignIn()">🔐 Admin Login</button>
+<div id="adminLoginMsg" class="msg"></div>
+<p class="muted">Admin account Firebaseમાં બનાવેલું હોવું જોઈએ.</p>
+</div>
+</section>
+
+<section id="studentDash" class="dashboard hidden">
+<div class="topbar"><div><h2>🎓 Student Dashboard</h2><span id="studentWelcome" class="badge"></span></div><button class="danger" onclick="logout()">Logout</button></div>
+<div id="studentTests"></div><div id="studentTestArea" class="hidden"></div>
+</section>
+
+<section id="teacherDash" class="dashboard hidden">
+<div class="topbar"><div><h2>👨‍🏫 Teacher Dashboard</h2><span id="teacherWelcome" class="badge"></span></div><button class="danger" onclick="logout()">Logout</button></div>
+<div class="tabs"><button class="active" onclick="teacherTab('create',this)">➕ Create Test</button><button onclick="teacherTab('tests',this)">📚 My Tests</button><button onclick="teacherTab('results',this)">📊 Results</button></div>
+<div id="teacherCreate">
+ <div class="card"><h3>➕ નવી Test બનાવો</h3>
+ <div class="optionGrid"><input id="schoolName" class="input" placeholder="શાળાનું નામ / School Name / विद्यालय का नाम"><input id="testTitle" class="input" placeholder="ટેસ્ટનું નામ / Test Name / परीक्षा का नाम"></div>
+ <div class="optionGrid"><select id="testStd" class="input"><option value="">ધોરણ પસંદ કરો / Select Standard</option><option>9</option><option>10</option></select><select id="testSubject" class="input"><option value="">વિષય પસંદ કરો / Select Subject</option><option>ગુજરાતી / Gujarati</option><option>હિન્દી / Hindi</option><option>English</option><option>ગણિત / Mathematics</option><option>વિજ્ઞાન / Science</option><option>સામાજિક વિજ્ઞાન / Social Science</option><option>અન્ય / Other</option></select></div>
+ <div class="optionGrid"><input id="testDate" class="input" type="date"><input id="testTotalMarks" class="input" type="number" min="1" placeholder="કુલ ગુણ / Total Marks"></div>
+ <div class="optionGrid"><input id="testMinutes" class="input" type="number" value="30" min="1" placeholder="સમય (મિનિટ)"><input id="testPass" class="input" type="number" value="0" min="0" placeholder="પાસિંગ ગુણ"></div>
+ <div class="optionGrid"><input id="teacherSign" class="input" placeholder="શિક્ષકની સહી / Teacher Signature"><input id="principalSign" class="input" placeholder="આચાર્યની સહી / Principal Signature"></div>
+ <label>ભાષા / Language</label><select id="testLanguage" class="input"><option value="auto">PDF પ્રમાણે આપમેળે / Auto from PDF</option><option value="gu">ગુજરાતી</option><option value="hi">हिन्दी</option><option value="en">English</option></select>
+ <hr><h3>📄 PDFમાંથી પ્રશ્નો</h3><p class="muted">PDF upload કર્યા પછી પ્રશ્નોની list આવશે. માત્ર પસંદ કરેલા પ્રશ્નો જ Testમાં જશે. Std 9/10 અને Subject filter લાગુ રહેશે.</p>
+ <input id="pdfFile" class="input" type="file" accept="application/pdf"><div id="pdfMsg" class="msg"></div><div id="pdfQuestions"></div>
+ <div id="paperPreview" class="headerPreview"><b>Paper Preview</b><div id="paperPreviewText" class="muted">અહીં ટેસ્ટનું header preview દેખાશે.</div></div>
+ <hr><h3>📄 PDF Library</h3><div id="teacherPdfs"></div><hr><h3>📚 Section / વિભાગ</h3><div id="sectionBuilder"></div><button class="secondary" onclick="addSection()">+ Section ઉમેરો</button>
+ <hr><h3>✍️ પસંદ કરેલા પ્રશ્નો</h3><div id="questionBuilder"></div>
+ <div class="actions"><button class="secondary" onclick="addQuestion()">+ Manual Question</button><button class="success" onclick="saveTest()">💾 Test Save કરો</button></div><div id="teacherMsg" class="msg"></div></div>
+ </div>
+<div id="teacherTests" class="hidden"></div><div id="teacherResults" class="hidden"></div>
+</section>
+
+<section id="adminDash" class="dashboard hidden">
+<div class="topbar"><div><h2>🛠️ Admin Dashboard</h2><span id="adminWelcome" class="badge"></span></div><button class="danger" onclick="logout()">Logout</button></div>
+<div class="stats" id="adminStats"></div>
+<div class="tabs"><button class="active" onclick="adminTab('teachers',this)">👨‍🏫 Teachers</button><button onclick="adminTab('students',this)">🎓 Students</button><button onclick="adminTab('accounts',this)">👥 Accounts</button><button onclick="adminTab('tests',this)">📚 Tests</button><button onclick="adminTab('results',this)">📊 Results</button><button onclick="adminTab('pdfs',this)">📄 PDFs</button></div>
+<div id="adminTeachers">
+<div class="card"><h3>Admin દ્વારા Teacher Account બનાવો</h3><p class="muted">આ હવે optional છે. Teacher પોતે Email + Passwordથી account બનાવી શકે છે.</p>
+<div class="optionGrid"><input id="newTeacherName" class="input" placeholder="Teacher Name"><input id="newTeacherEmail" class="input" type="email" placeholder="Teacher Email"></div>
+<input id="newTeacherPassword" class="input" type="password" placeholder="Temporary Password (6+ characters)">
+<button class="success" onclick="createTeacher()">Create Teacher</button>
+<div id="adminMsg" class="msg"></div></div>
+<div class="card"><h3>Admin Account બનાવો</h3>
+<div class="optionGrid"><input id="newAdminName" class="input" placeholder="Admin Name"><input id="newAdminEmail" class="input" type="email" placeholder="Admin Email"></div>
+<input id="newAdminPassword" class="input" type="password" placeholder="Password (6+ characters)">
+<button class="danger" onclick="createAdmin()">Create Admin</button></div>
+<div id="teacherList"></div>
+</div>
+<div id="adminStudents" class="hidden"></div>
+<div id="adminAccounts" class="hidden">
+  <h3>👥 Account Management</h3>
+  <div class="card">
+    <b>Teacher / Student Account Delete</b>
+    <p class="muted">Admin અહીંથી Teacher અથવા Student account બંધ કરી શકે છે. Delete પછી તે account થી login નહીં થઈ શકે.</p>
+    <button class="secondary" onclick="loadAdminAccounts()">🔄 Refresh Accounts</button>
+  </div>
+  <div id="adminAccountList"></div>
+</div>
+<div id="adminTests" class="hidden"></div><div id="adminResults" class="hidden"></div><div id="adminPdfs" class="hidden"></div>
+</section>
+</div>
+<footer style="text-align:center;padding:25px;color:#667085">© Smart Online MCQ Test Portal</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,signOut,createUserWithEmailAndPassword,onAuthStateChanged,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {getDatabase,ref,set,get,push,update,remove} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import {getStorage,ref as storageRef,uploadBytes,getDownloadURL,deleteObject} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
+
+const firebaseConfig={
+apiKey:"AIzaSyCsF20NQAOn9vbx_wcMtMxFSyTekIm0cO8",
+authDomain:"online-test-portal-new.firebaseapp.com",
+databaseURL:"https://online-test-portal-new-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId:"online-test-portal-new",
+storageBucket:"online-test-portal-new.firebasestorage.app",
+messagingSenderId:"141954006604",
+appId:"1:141954006604:web:841d4eb27d9546aac77ee9",
+measurementId:"G-6Q30V6BFJ8"
+};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app),storage=getStorage(app);
+const secondaryApp=initializeApp(firebaseConfig,'staffCreator'),secondaryAuth=getAuth(secondaryApp);
+// Keep login session stable on GitHub Pages and avoid repeated-login issues.
+setPersistence(auth,browserLocalPersistence).catch(()=>{});
+setPersistence(secondaryAuth,browserLocalPersistence).catch(()=>{});
+
+let confirmationResult=null,recaptchaVerifier=null,currentRole=null,currentUser=null,timer=null,timeLeft=0,currentTest=null;
+const $=id=>document.getElementById(id);
+function hideAll(){
+  document.querySelectorAll('.dashboard').forEach(x=>x.classList.add('hidden'));
+  $('loginPanel').classList.add('hidden');
+  $('home').classList.add('hidden');
+}
+const msg=(id,text,ok=false)=>{$(id).textContent=text;$(id).className='msg '+(ok?'ok':'error')};
+window.goHome=()=>{clearInterval(timer);document.querySelectorAll('.dashboard').forEach(x=>x.classList.add('hidden'));$('loginPanel').classList.add('hidden');$('home').classList.remove('hidden');currentRole=null};
+window.openLogin=role=>{clearInterval(timer);document.querySelectorAll('.dashboard').forEach(x=>x.classList.add('hidden'));currentRole=role;$('home').classList.add('hidden');$('loginPanel').classList.remove('hidden');$('loginTitle').textContent=role==='student'?'🎓 Student Login / Signup':role==='teacher'?'👨‍🏫 Teacher Login / Signup':'🛠️ Admin Login';$('phoneLogin').classList.toggle('hidden',role==='admin');$('adminLogin').classList.toggle('hidden',role!=='admin');$('phoneLogin').style.display=role==='admin'?'none':'block';$('adminLogin').style.display=role==='admin'?'block':'none';$('phoneNameLabel').textContent=role==='teacher'?'Teacher Name':'Student Name';$('phoneName').placeholder=role==='teacher'?'Teacherનું નામ':'Studentનું નામ';$('phoneHelp').textContent=role==='teacher'?'નવું Teacher account બનાવવા Signup કરો, અથવા registered Email + Passwordથી Login કરો.':'નવો Student account બનાવવા Signup કરો, અથવા registered Email + Passwordથી Login કરો.';$('phoneMsg').textContent=''};
+window.emailSignup=async()=>{
+ const name=$('phoneName').value.trim(),email=$('userEmail').value.trim().toLowerCase(),password=$('userPassword').value;
+ if(!name||!email||password.length<6){msg('phoneMsg','Name, Email અને ઓછામાં ઓછો 6 અક્ષરનો Password નાખો.');return} if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg('phoneMsg','સાચું Email નાખો, જેમ કે name@gmail.com');return}
+ try{
+  const cred=await createUserWithEmailAndPassword(auth,email,password);
+  await set(ref(db,'users/'+cred.user.uid),{uid:cred.user.uid,email,name,role:currentRole,createdAt:Date.now()});
+  currentUser=cred.user;
+  msg('phoneMsg','Account બની ગયું. Login સફળ.',true);
+  if(currentRole==='student')showStudent(cred.user);else showTeacher(cred.user,{name,role:currentRole,email});
+ }catch(e){msg('phoneMsg',friendlyError(e))}
+};
+window.emailLogin=async()=>{
+  const email=$('userEmail').value.trim().toLowerCase();
+  const password=$('userPassword').value;
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    msg('phoneMsg','સાચું Email નાખો, જેમ કે name@gmail.com'); return;
+  }
+  if(!password){
+    msg('phoneMsg','Password નાખો.'); return;
+  }
+  try{
+    const cred=await signInWithEmailAndPassword(auth,email,password);
+    const snap=await get(ref(db,'users/'+cred.user.uid));
+    let data;
+    if(!snap.exists()){
+      // Older Auth accounts may exist without a database profile. Create it automatically.
+      data={uid:cred.user.uid,email:cred.user.email||email,name:currentRole==='teacher'?'Teacher':'Student',role:currentRole,createdAt:Date.now()};
+      await set(ref(db,'users/'+cred.user.uid),data);
+    }else{
+      data=snap.val();
+    }
+    if(data.disabled===true){
+      await signOut(auth);
+      msg('phoneMsg','આ account Admin દ્વારા બંધ કરવામાં આવ્યું છે.');
+      return;
+    }
+    if(data.role!==currentRole){
+      await signOut(auth);
+      msg('phoneMsg','આ Email '+(data.role||'account')+' તરીકે registered છે. '+(currentRole==='student'?'Student':'Teacher')+' Login માટે યોગ્ય account વાપરો.');
+      return;
+    }
+    currentUser=cred.user;
+    if(currentRole==='student') showStudent(cred.user);
+    else showTeacher(cred.user,data);
+  }catch(e){
+    msg('phoneMsg',friendlyError(e));
+  }
+};
+window.adminSignIn=async()=>{
+ const adminEmail=$('adminEmail').value.trim().toLowerCase(),adminPassword=$('adminPassword').value;
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail)){msg('adminLoginMsg','સાચું Admin Email નાખો, જેમ કે admin@gmail.com');return}
+ if(!adminPassword){msg('adminLoginMsg','Password નાખો.');return}
+ try{
+   const cred=await signInWithEmailAndPassword(auth,adminEmail,adminPassword);
+   const s=await get(ref(db,'users/'+cred.user.uid));
+   let data;
+   if(s.exists()){
+     data=s.val();
+     if(data.disabled===true){await signOut(auth);msg('adminLoginMsg','આ Admin account બંધ કરવામાં આવ્યું છે.');return}
+     if(data.role!=='admin'){await signOut(auth);msg('adminLoginMsg','આ account Admin તરીકે registered નથી.');return}
+   }else{
+     data={uid:cred.user.uid,email:cred.user.email,name:'Admin',role:'admin',createdAt:Date.now()};
+     await set(ref(db,'users/'+cred.user.uid),data);
+   }
+   currentUser=cred.user;showAdmin(cred.user,data);
+ }catch(e){msg('adminLoginMsg',friendlyError(e))}
+};
+
+function friendlyError(e){const c=e?.code||'';if(c.includes('invalid-api-key'))return'Firebase API key/config error છે. GitHubમાં આ final index.html જ હોવી જોઈએ.';if(c.includes('auth/configuration-not-found'))return'Firebase Authentication configuration મળતી નથી. Firebaseમાં Email/Password provider ON કરો.';if(c.includes('invalid-email'))return'Email ખોટું છે. ઉદાહરણ: name@gmail.com';if(c.includes('email-already-in-use'))return'આ Email પહેલેથી registered છે.';if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found'))return'Email અથવા Password ખોટો છે.';if(c.includes('weak-password'))return'Password ઓછામાં ઓછો 6 અક્ષરનો રાખો.';if(c.includes('permission-denied'))return'Firebase Database permission denied. Login કર્યા પછી ફરી પ્રયાસ કરો.';if(c.includes('quota-exceeded')||c.includes('too-many-requests'))return'Firebase login quota હાલમાં પૂર્ણ છે. થોડા સમય પછી ફરી પ્રયાસ કરો.';return e?.message||'કોઈ error આવી.'}
+async function showStudent(u){hideAll();$('studentDash').classList.remove('hidden');const s=await get(ref(db,'users/'+u.uid));$('studentWelcome').textContent=s.exists()?(s.val().name||u.email||'Student'):(u.email||'Student');await loadStudentTests()}
+async function showTeacher(u,data){hideAll();$('loginPanel').classList.add('hidden');$('home').classList.add('hidden');$('teacherDash').classList.remove('hidden');$('teacherWelcome').textContent=data.name||u.email||'Teacher';await loadTeacherTests();$('questionBuilder').innerHTML='';addQuestion();await loadTeacherPdfs()}
+async function showAdmin(u,data){hideAll();$('loginPanel').classList.add('hidden');$('home').classList.add('hidden');$('adminDash').classList.remove('hidden');$('adminWelcome').textContent=data.name||u.email;await loadAdmin()}
+window.logout=async()=>{clearInterval(timer);await signOut(auth);currentUser=null;currentRole=null;goHome()};
+function esc(s=''){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+
+let pdfParsedQuestions=[];
+window.extractPdfQuestions=async(event)=>{
+ const file=event.target.files?.[0]; if(!file)return;
+ const std=$('testStd').value,subject=$('testSubject').value;
+ msg('pdfMsg',`📄 PDF વાંચી રહ્યા છીએ... ધોરણ ${std} • ${subject}`,true); $('pdfQuestions').innerHTML='';
+ try{
+  const pdfjs=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs');
+  pdfjs.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+  const pdf=await pdfjs.getDocument({data:await file.arrayBuffer()}).promise; let text='';
+  for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i),c=await page.getTextContent();text+=c.items.map(x=>x.str).join(' ')+'\n';}
+  pdfParsedQuestions=parsePdfQuestions(text);
+  if(!pdfParsedQuestions.length){msg('pdfMsg','પ્રશ્નો ઓળખાયા નથી. PDF scan/image હોય તો OCR જરૂરી છે.',false);return;}
+  msg('pdfMsg',`✅ ${pdfParsedQuestions.length} પ્રશ્નો મળ્યા. હવે પસંદ કરો.`,true);renderPdfQuestions();
+ }catch(e){msg('pdfMsg','PDF વાંચવામાં સમસ્યા: '+(e.message||e),false)}
+};
+function parsePdfQuestions(text){
+ const joined=text.replace(/\r/g,'').split(/\n+/).map(x=>x.trim()).filter(Boolean).join('\n');
+ const ms=[...joined.matchAll(/(?:^|\n)\s*(?:પ્રશ્ન\s*)?(\d{1,3})\s*[.)、:-]\s+/gi)],out=[];
+ for(let i=0;i<ms.length;i++){
+  const start=ms[i].index+(ms[i][0].length-ms[i][0].trimStart().length); const end=i+1<ms.length?ms[i+1].index:joined.length;
+  let block=joined.slice(start,end).replace(/^\s*(?:પ્રશ્ન\s*)?\d{1,3}\s*[.)、:-]\s*/i,'').replace(/\s+/g,' ').trim(); if(block.length<4)continue;
+  let a=['','','',''],q=block; const opts=[...block.matchAll(/(?:^|\s)([A-Da-d])\s*[.)]\s*(.*?)(?=\s+[A-Da-d]\s*[.)]\s*|$)/g)];
+  if(opts.length>=2){q=block.slice(0,opts[0].index).trim();opts.slice(0,4).forEach((m,j)=>a[j]=m[2].trim())}
+  q=q.replace(/\s*\(?\d+\s*(?:માર્ક|marks?)\)?\s*$/i,'').trim(); if(q)out.push({q,a,c:0});
+ }
+ const seen=new Set();return out.filter(x=>{const k=x.q.toLowerCase();if(seen.has(k))return false;seen.add(k);return true});
+}
+window.renderPdfQuestions=()=>{$('pdfQuestions').innerHTML=`<div class="topbar"><b>📋 Std ${esc($('testStd').value)} • ${esc($('testSubject').value)}</b><span class="badge">${pdfParsedQuestions.length} પ્રશ્નો</span></div>`+pdfParsedQuestions.map((x,i)=>`<label class="qRow" style="display:block;cursor:pointer"><input type="checkbox" class="pdfPick" data-i="${i}"> <b>Q${i+1}.</b> ${esc(x.q)}<div class="muted">${x.a.filter(Boolean).map((o,j)=>String.fromCharCode(65+j)+'. '+esc(o)).join(' &nbsp; ')}</div></label>`).join('')+`<div class="actions"><button class="success" onclick="addSelectedPdfQuestions()">➕ પસંદ કરેલા પ્રશ્નો ઉમેરો</button><button class="secondary" onclick="selectAllPdf()">Select All</button></div>`};
+window.selectAllPdf=()=>document.querySelectorAll('.pdfPick').forEach(x=>x.checked=true);
+window.addSelectedPdfQuestions=()=>{const picks=[...document.querySelectorAll('.pdfPick:checked')].map(x=>Number(x.dataset.i));if(!picks.length){msg('pdfMsg','પહેલા પ્રશ્ન પસંદ કરો.');return}picks.forEach(i=>addQuestion(pdfParsedQuestions[i]));document.querySelectorAll('.pdfPick:checked').forEach(x=>x.checked=false);msg('pdfMsg',`${picks.length} પ્રશ્નો Testમાં ઉમેરાયા.`,true)};
+window.addQuestion=(preset=null)=>{
+const n=document.querySelectorAll('#questionBuilder .qRow').length+1,d=document.createElement('div');d.className='qRow'; d.dataset.marks=1;
+d.innerHTML=`<div class="topbar"><b>Question ${n}</b><button class="danger" type="button">Remove</button></div><textarea class="input qtext" rows="2" placeholder="Question"></textarea><div class="optionGrid"><input class="input opt" placeholder="Option A"><input class="input opt" placeholder="Option B"><input class="input opt" placeholder="Option C"><input class="input opt" placeholder="Option D"></div><select class="input correct"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option></select><input class="mini qmarks" type="number" min="1" value="1" placeholder="Marks" oninput="this.closest('.qRow').dataset.marks=this.value">`;
+if(preset){d.querySelector('.qtext').value=preset.q;d.querySelectorAll('.opt').forEach((el,i)=>el.value=preset.a?.[i]||'');d.querySelector('.correct').value=String(preset.c||0)}
+d.querySelector('button').onclick=()=>d.remove();$('questionBuilder').appendChild(d)
+};
+window.saveTest=async()=>{
+if(!currentUser)return;
+const title=$('testTitle').value.trim(),rows=[...document.querySelectorAll('.qRow')];
+if(!title||!rows.length){msg('teacherMsg','Test Title અને ઓછામાં ઓછો 1 Question જરૂરી છે.');return}
+const questions=rows.map(r=>({q:r.querySelector('.qtext').value.trim(),a:[...r.querySelectorAll('.opt')].map(x=>x.value.trim()),c:Number(r.querySelector('.correct').value)}));
+if(questions.some(x=>!x.q||x.a.some(a=>!a))){msg('teacherMsg','બધા Question અને Options ભરો.');return}
+const id=push(ref(db,'tests')).key;const std=$('testStd').value,subject=$('testSubject').value;
+await set(ref(db,'tests/'+id),{id,title,std,subject,minutes:Number($('testMinutes').value)||30,passMarks:Number($('testPass').value)||0,teacherId:currentUser.uid,teacherName:$('teacherWelcome').textContent,questions,status:'draft',createdAt:Date.now()});
+msg('teacherMsg','Test Save થયું. My Testsમાં જઈ Publish કરો.',true);$('testTitle').value='';$('questionBuilder').innerHTML='';addQuestion();await loadTeacherTests()
+};
+window.teacherTab=async(tab,btn)=>{
+document.querySelectorAll('#teacherDash .tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+$('teacherCreate').classList.toggle('hidden',tab!=='create');$('teacherTests').classList.toggle('hidden',tab!=='tests');$('teacherResults').classList.toggle('hidden',tab!=='results');
+if(tab==='tests')await loadTeacherTests();if(tab==='results')await loadTeacherResults()
+};
+async function allTests(){const s=await get(ref(db,'tests'));return s.exists()?Object.values(s.val()):[]}
+async function getPdfs(){const s=await get(ref(db,'pdfs'));return s.exists()?Object.values(s.val()):[]}
+async function loadTeacherPdfs(){if(!currentUser)return;const arr=(await getPdfs()).filter(x=>x.ownerId===currentUser.uid);$('teacherPdfs').innerHTML='<div class="card"><b>📤 PDF Upload</b><input id="teacherPdfFile" class="input" type="file" accept="application/pdf"><button class="success" onclick="uploadPortalPdf(\'teacher\')">Upload PDF</button><div id="teacherPdfMsg" class="msg"></div></div>'+(arr.length?arr.map(x=>`<div class="card"><b>${esc(x.name)}</b><p>${esc(x.std||'')} • ${esc(x.subject||'')} • ${new Date(x.createdAt).toLocaleString('en-IN')}</p><a href="${esc(x.url)}" target="_blank">📖 Open PDF</a> <button class="danger" onclick="deletePortalPdf(\'${x.id}\')">🗑️ Delete</button></div>`).join(''):'<p class="muted">હજુ PDF નથી.</p>')}
+window.uploadPortalPdf=async(role)=>{const f=$(role==='admin'?'adminPdfFile':'teacherPdfFile')?.files?.[0];if(!f)return alert('PDF પસંદ કરો.');if(f.type!=='application/pdf')return alert('માત્ર PDF પસંદ કરો.');const msgId=role==='admin'?'adminPdfMsg':'teacherPdfMsg';msg(msgId,'PDF upload થઈ રહ્યું છે...',true);try{const id=push(ref(db,'pdfs')).key;const sr=storageRef(storage,'portal-pdfs/'+id+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_'));await uploadBytes(sr,f,{contentType:'application/pdf'});const url=await getDownloadURL(sr);const meta={id,name:f.name,url,storagePath:sr.fullPath,ownerId:currentUser.uid,ownerRole:role,std:role==='admin'?($('adminPdfStd')?.value||''):($('testStd')?.value||''),subject:role==='admin'?($('adminPdfSubject')?.value||''):($('testSubject')?.value||''),createdAt:Date.now()};await set(ref(db,'pdfs/'+id),meta);msg(msgId,'✅ PDF સફળતાપૂર્વક upload થયું.',true);role==='admin'?await loadAdminPdfs():await loadTeacherPdfs();}catch(e){msg(msgId,'PDF upload error: '+friendlyError(e));}};
+window.deletePortalPdf=async id=>{const s=await get(ref(db,'pdfs/'+id));if(!s.exists())return;const x=s.val();if(!confirm('આ PDF delete કરવી છે?'))return;try{if(x.storagePath)await deleteObject(storageRef(storage,x.storagePath)).catch(()=>{});await remove(ref(db,'pdfs/'+id));await loadTeacherPdfs();await loadAdminPdfs();}catch(e){alert('PDF delete error: '+(e.message||e))}};
+async function loadTeacherTests(){
+if(!currentUser)return;const arr=(await allTests()).filter(t=>t.teacherId===currentUser.uid);
+$('teacherTests').innerHTML='<h3>📚 My Tests</h3>'+(arr.length?arr.map(t=>`<div class="card"><div class="topbar"><div><h3>${esc(t.title)}</h3><span class="badge">${esc(t.subject)} • Std ${esc(t.std)}</span></div><span>${t.status==='published'?'🟢 Published':'🟡 Draft'}</span></div><p>${t.questions.length} Questions • ${t.minutes} Minutes</p><button class="success" onclick="togglePublish('${t.id}','${t.status}')">${t.status==='published'?'Unpublish':'Publish'}</button></div>`).join(''):'<p class="muted">હજુ Test નથી.</p>')
+}
+window.togglePublish=async(id,status)=>{await update(ref(db,'tests/'+id),{status:status==='published'?'draft':'published'});await loadTeacherTests()};
+async function loadTeacherResults(){
+const ts=(await allTests()).filter(t=>t.teacherId===currentUser.uid),rs=await get(ref(db,'results'));let arr=rs.exists()?Object.values(rs.val()):[];
+arr=arr.filter(r=>ts.some(t=>t.id===r.testId));
+$('teacherResults').innerHTML='<h3>📊 Student Results</h3><div class="tableWrap"><table class="table"><tr><th>Student</th><th>Test</th><th>Score</th><th>%</th><th>Date</th></tr>'+arr.map(r=>`<tr><td>${esc(r.studentName||r.studentMobile||'-')}</td><td>${esc(r.testTitle)}</td><td>${r.score}/${r.total}</td><td>${r.percentage}%</td><td>${new Date(r.createdAt).toLocaleString('en-IN')}</td></tr>`).join('')+'</table></div>'
+}
+async function loadStudentTests(){
+const arr=(await allTests()).filter(t=>t.status==='published');
+$('studentTests').innerHTML='<h3>📝 Available Tests</h3>'+(arr.length?'<div class="grid">'+arr.map(t=>`<div class="card"><h3>${esc(t.title)}</h3><p>${esc(t.subject)} • Std ${esc(t.std)}</p><p>❓ ${t.questions.length} Questions • ⏱️ ${t.minutes} min</p><button onclick="startStudentTest('${t.id}')">Start Test</button></div>`).join('')+'</div>':'<p class="muted">હાલ કોઈ Published Test નથી.</p>')
+}
+window.startStudentTest=async id=>{
+const s=await get(ref(db,'tests/'+id));if(!s.exists())return;currentTest=s.val();
+$('studentTests').classList.add('hidden');$('studentTestArea').classList.remove('hidden');
+$('studentTestArea').innerHTML=`<div class="topbar"><h2>${esc(currentTest.title)}</h2><div class="timer">⏱️ <span id="studentTimer"></span></div></div><div id="studentQuestions"></div><button class="success" onclick="submitStudentTest()">Submit Test</button><div id="studentResult"></div>`;
+$('studentQuestions').innerHTML=currentTest.questions.map((x,i)=>`<div class="question"><b>Q${i+1}. ${esc(x.q)}</b>${x.a.map((o,j)=>`<label class="option"><input type="radio" name="sq${i}" value="${j}"> ${String.fromCharCode(65+j)}. ${esc(o)}</label>`).join('')}</div>`).join('');
+timeLeft=currentTest.minutes*60;clearInterval(timer);timer=setInterval(()=>{timeLeft--;renderTimer();if(timeLeft<=0)submitStudentTest()},1000);renderTimer()
+};
+function renderTimer(){if(!$('studentTimer'))return;let m=Math.floor(timeLeft/60),s=timeLeft%60;$('studentTimer').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+window.submitStudentTest=async()=>{
+if(!currentTest||!currentUser)return;clearInterval(timer);let score=0;
+currentTest.questions.forEach((q,i)=>{const v=document.querySelector(`input[name="sq${i}"]:checked`);if(v&&Number(v.value)===q.c)score++});
+const total=currentTest.questions.length,percentage=Math.round(score/total*100),id=push(ref(db,'results')).key;
+await set(ref(db,'results/'+id),{id,testId:currentTest.id,testTitle:currentTest.title,studentUid:currentUser.uid,studentMobile:currentUser.email||'',studentName:currentUser.email||'',score,total,percentage,createdAt:Date.now()});
+$('studentResult').innerHTML=`<div class="msg ok"><h2>🎉 Result</h2><h3>${score} / ${total}</h3><p>${percentage}%</p><p>${percentage>=Number(currentTest.passMarks||0)?'સફળ':'વધુ મહેનત કરો'}</p><button onclick="backToStudentTests()">Back to Tests</button></div>`
+};
+window.backToStudentTests=()=>{currentTest=null;$('studentTestArea').classList.add('hidden');$('studentTests').classList.remove('hidden');loadStudentTests()};
+window.adminTab=async(tab,btn)=>{
+document.querySelectorAll('#adminDash .tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+['teachers','students','accounts','tests','results','pdfs'].forEach(x=>$('admin'+x[0].toUpperCase()+x.slice(1)).classList.add('hidden'));
+const el=$('admin'+tab[0].toUpperCase()+tab.slice(1));el.classList.remove('hidden');
+if(tab==='teachers')await loadTeacherList();if(tab==='students')await loadAdminStudents();if(tab==='accounts')await loadAdminAccounts();if(tab==='tests')await loadAdminTests();if(tab==='results')await loadAdminResults();if(tab==='pdfs')await loadAdminPdfs()
+};
+async function users(){const s=await get(ref(db,'users'));return s.exists()?Object.values(s.val()):[]}
+async function loadAdminPdfs(){const arr=await getPdfs();$('adminPdfs').innerHTML='<h3>📄 PDF Library — Admin</h3><div class="card"><b>📤 Admin PDF Upload</b><div class="optionGrid"><select id="adminPdfStd" class="input"><option value="">ધોરણ</option><option>9</option><option>10</option></select><input id="adminPdfSubject" class="input" placeholder="વિષય / Subject"></div><input id="adminPdfFile" class="input" type="file" accept="application/pdf"><button class="success" onclick="uploadPortalPdf(\'admin\')">Upload PDF</button><div id="adminPdfMsg" class="msg"></div></div>'+(arr.length?arr.map(x=>`<div class="card"><b>${esc(x.name)}</b><p>Std ${esc(x.std||'-')} • ${esc(x.subject||'-')} • Uploaded by ${esc(x.ownerRole||'admin')}</p><a href="${esc(x.url)}" target="_blank">📖 Open PDF</a> <button class="danger" onclick="deletePortalPdf(\'${x.id}\')">🗑️ Delete</button></div>`).join(''):'<p class="muted">હજુ PDF upload થયેલ નથી.</p>')}
+async function loadAdmin(){
+const u=await users(),t=await allTests(),r=await get(ref(db,'results'));
+$('adminStats').innerHTML=`<div class="stat"><b>${u.filter(x=>x.role==='student').length}</b>Students</div><div class="stat"><b>${u.filter(x=>x.role==='teacher').length}</b>Teachers</div><div class="stat"><b>${t.length}</b>Tests</div><div class="stat"><b>${r.exists()?Object.keys(r.val()).length:0}</b>Results</div>`;
+await loadTeacherList()
+}
+async function loadTeacherList(){
+const arr=(await users()).filter(x=>x.role==='teacher'&&x.disabled!==true);
+$('teacherList').innerHTML='<h3>Teacher List</h3><div class="tableWrap"><table class="table"><tr><th>Name</th><th>Email</th><th>Created</th><th>Action</th></tr>'+arr.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.email||'-')}</td><td>${new Date(x.createdAt||Date.now()).toLocaleDateString('en-IN')}</td><td><button class="danger" onclick="adminDeleteAccount('${esc(x.uid)}','${esc(x.name||x.email||'Teacher')}','teacher')">🗑️ Delete</button></td></tr>`).join('')+'</table></div>'
+}
+async function loadAdminStudents(){
+const arr=(await users()).filter(x=>x.role==='student'&&x.disabled!==true);
+$('adminStudents').innerHTML='<h3>🎓 Students</h3><div class="tableWrap"><table class="table"><tr><th>Email</th><th>Name</th><th>Created</th><th>Action</th></tr>'+arr.map(x=>`<tr><td>${esc(x.email||'-')}</td><td>${esc(x.name)}</td><td>${new Date(x.createdAt||Date.now()).toLocaleDateString('en-IN')}</td><td><button class="danger" onclick="adminDeleteAccount('${esc(x.uid)}','${esc(x.name||x.email||'Student')}','student')">🗑️ Delete</button></td></tr>`).join('')+'</table></div>'
+}
+async function loadAdminAccounts(){
+const arr=(await users()).filter(x=>(x.role==='teacher'||x.role==='student')&&x.disabled!==true);
+$('adminAccountList').innerHTML=arr.length?'<div class="tableWrap"><table class="table"><tr><th>Role</th><th>Name</th><th>Email</th><th>Action</th></tr>'+arr.map(x=>`<tr><td>${x.role==='teacher'?'👨‍🏫 Teacher':'🎓 Student'}</td><td>${esc(x.name||'-')}</td><td>${esc(x.email||'-')}</td><td><button class="danger" onclick="adminDeleteAccount('${esc(x.uid)}','${esc(x.name||x.email||'Account')}','${esc(x.role)}')">🗑️ Delete</button></td></tr>`).join('')+'</table></div>':'<p class="muted">હાલ કોઈ active Teacher/Student account નથી.</p>'
+}
+window.adminDeleteAccount=async(uid,name,role)=>{
+if(!currentUser){alert('Admin login જરૂરી છે.');return}
+if(uid===currentUser.uid){alert('તમારું પોતાનું Admin account અહીંથી delete કરી શકાતું નથી.');return}
+const me=await get(ref(db,'users/'+currentUser.uid));
+if(!me.exists()||me.val().role!=='admin'){alert('ફક્ત Admin જ account delete કરી શકે.');return}
+if(!confirm(`${name} (${role}) નું account બંધ/ડિલીટ કરવું છે?`))return;
+try{
+  await update(ref(db,'users/'+uid),{disabled:true,disabledAt:Date.now(),disabledBy:currentUser.uid});
+  alert('Account delete/disable થઈ ગયું. હવે આ account થી portal માં login નહીં થઈ શકે.');
+  await loadTeacherList();
+  await loadAdminStudents();
+  await loadAdminAccounts();
+  await loadAdmin();
+}catch(e){alert('Account delete error: '+(e.message||e))}
+}
+
+async function loadAdminTests(){
+const arr=await allTests();$('adminTests').innerHTML='<h3>📚 All Tests</h3>'+arr.map(t=>`<div class="card"><b>${esc(t.title)}</b> — ${esc(t.subject)} — ${t.questions.length} Q — ${t.status}</div>`).join('')
+}
+async function loadAdminResults(){
+const s=await get(ref(db,'results'));const arr=s.exists()?Object.values(s.val()):[];
+$('adminResults').innerHTML='<h3>📊 All Results</h3><div class="tableWrap"><table class="table"><tr><th>Student</th><th>Test</th><th>Score</th><th>%</th></tr>'+arr.map(r=>`<tr><td>${esc(r.studentMobile)}</td><td>${esc(r.testTitle)}</td><td>${r.score}/${r.total}</td><td>${r.percentage}%</td></tr>`).join('')+'</table></div>'
+}
+window.createTeacher=async()=>{
+const name=$('newTeacherName').value.trim(),email=$('newTeacherEmail').value.trim(),pass=$('newTeacherPassword').value;
+if(!name||!email||pass.length<6){msg('adminMsg','Name, Email અને 6+ character Password જરૂરી છે.');return} if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg('adminMsg','સાચું Email નાખો, જેમ કે teacher@gmail.com');return}
+try{
+const cred=await createUserWithEmailAndPassword(secondaryAuth,email,pass);
+await set(ref(db,'users/'+cred.user.uid),{uid:cred.user.uid,email,name,role:'teacher',createdAt:Date.now(),createdBy:currentUser.uid});
+await signOut(secondaryAuth);msg('adminMsg','Teacher account બની ગયું.',true);await loadTeacherList();await loadAdmin()
+}catch(e){msg('adminMsg',friendlyError(e))}
+};
+window.createAdmin=async()=>{
+const name=$('newAdminName').value.trim(),email=$('newAdminEmail').value.trim(),pass=$('newAdminPassword').value;
+if(!currentUser){alert('પહેલા Admin login કરો.');return}
+const me=await get(ref(db,'users/'+currentUser.uid));if(!me.exists()||me.val().role!=='admin'){alert('ફક્ત Admin જ Admin account બનાવી શકે.');return}
+if(!name||!email||pass.length<6){alert('Name, Email અને 6+ character Password જરૂરી છે.');return} if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){alert('સાચું Email નાખો, જેમ કે admin@gmail.com');return}
+try{
+const cred=await createUserWithEmailAndPassword(secondaryAuth,email,pass);
+await set(ref(db,'users/'+cred.user.uid),{uid:cred.user.uid,email,name,role:'admin',createdAt:Date.now(),createdBy:currentUser.uid});
+await signOut(secondaryAuth);alert('Admin account બની ગયું.');
+}catch(e){alert(friendlyError(e))}
+};
+
+let pdfExtractedQuestions=[];
+let sections=[];
+function updatePaperPreview(){const l=$('testLanguage').value==='auto'?'gu':$('testLanguage').value;const L=l==='hi'?{school:'विद्यालय का नाम',title:'परीक्षा का नाम',date:'दिनांक',marks:'पूर्णांक',subject:'विषय',std:'कक्षा',time:'समय',teacher:'शिक्षक के हस्ताक्षर',principal:'प्रधानाचार्य के हस्ताक्षर'}:l==='en'?{school:'School Name',title:'Test Name',date:'Date',marks:'Total Marks',subject:'Subject',std:'Standard',time:'Time',teacher:'Teacher Signature',principal:'Principal Signature'}:{school:'શાળાનું નામ',title:'ટેસ્ટનું નામ',date:'તારીખ',marks:'કુલ ગુણ',subject:'વિષય',std:'ધોરણ',time:'સમય',teacher:'શિક્ષકની સહી',principal:'આચાર્યની સહી'};const val=id=>$(id)?.value||'';$('paperPreviewText').innerHTML=`<h3 style="text-align:center">${esc(val('schoolName')||L.school)}</h3><h4 style="text-align:center">${esc(val('testTitle')||L.title)}</h4><p><b>${L.std}:</b> ${esc(val('testStd'))} &nbsp; <b>${L.subject}:</b> ${esc(val('testSubject'))}</p><p><b>${L.date}:</b> ${esc(val('testDate'))} &nbsp; <b>${L.marks}:</b> ${esc(val('testTotalMarks'))} &nbsp; <b>${L.time}:</b> ${esc(val('testMinutes'))}</p><p style="display:flex;justify-content:space-between"><span>${esc(val('teacherSign')||L.teacher)}</span><span>${esc(val('principalSign')||L.principal)}</span></p>`}
+['schoolName','testTitle','testStd','testSubject','testDate','testTotalMarks','testMinutes','teacherSign','principalSign','testLanguage'].forEach(id=>{const e=$(id);if(e)e.addEventListener('input',updatePaperPreview)});
+window.addSection=()=>{
+ const id='sec_'+Date.now()+Math.random().toString(16).slice(2); sections.push({id,name:'Section',instruction:'',marks:0,select:0}); renderSections();
+};
+window.removeSection=id=>{sections=sections.filter(x=>x.id!==id);renderSections()};
+window.renderSections=()=>{
+ $('sectionBuilder').innerHTML=sections.map((x,i)=>`<div class="secbox"><div class="topbar"><b>Section ${i+1}</b><button class="danger" onclick="removeSection('${x.id}')">Remove</button></div><input class="mini" value="${esc(x.name)}" oninput="sections[${i}].name=this.value" placeholder="Section name"><input class="mini" value="${esc(x.instruction)}" oninput="sections[${i}].instruction=this.value" placeholder="Instruction / સૂચના / निर्देश"><div class="optionGrid"><input class="mini" type="number" min="0" value="${x.marks}" oninput="sections[${i}].marks=Number(this.value)||0" placeholder="Section Marks"><input class="mini" type="number" min="0" value="${x.select}" oninput="sections[${i}].select=Number(this.value)||0" placeholder="How many questions"></div></div>`).join('');
+};
+function detectLang(text){if(/[\u0A80-\u0AFF]/.test(text))return 'gu';if(/[\u0900-\u097F]/.test(text))return 'hi';return 'en'}
+function langLabel(l){return l==='gu'?'ગુજરાતી':l==='hi'?'हिन्दी':'English'}
+function parseQuestions(text){
+ text=text.replace(/\r/g,'').replace(/[ \t]+\n/g,'\n');
+ const lines=text.split('\n').map(x=>x.trim()).filter(Boolean);
+ let out=[],cur=null;
+ const qre=/^(?:Q(?:uestion)?\.?\s*)?(\d{1,3})[\).:-]\s*(.*)$/i;
+ for(const line of lines){
+   let m=line.match(qre);
+   if(m){if(cur)out.push(cur);cur={q:m[2],a:[],c:0,marks:1,section:''};continue}
+   if(cur){
+    const om=line.match(/^(?:\(?([A-Da-d])\)|([A-Da-d])[\).:-])\s*(.*)$/);
+    if(om){cur.a.push((om[3]||'').trim());continue}
+    if(/(?:\b|^)(\d+)\s*(?:mark|marks|ગુણ|अंक)\b/i.test(line)){const mm=line.match(/(\d+)\s*(?:mark|marks|ગુણ|अंक)/i);if(mm)cur.marks=Number(mm[1]);continue}
+    if(cur.q.length<600)cur.q+=' '+line;
+   }
+ }
+ if(cur)out.push(cur);
+ return out.filter(x=>x.q.length>2).slice(0,300);
+}
+async function readPdf(file){
+ const pdfjs=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs');
+ const data=await file.arrayBuffer();const pdf=await pdfjs.getDocument({data}).promise;let text='';
+ for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const c=await page.getTextContent();text+=c.items.map(it=>it.str).join(' ')+'\n'}
+ return {text,pages:pdf.numPages};
+}
+function renderPdfQuestions(){
+ const arr=pdfExtractedQuestions;
+ $('pdfQuestions').innerHTML=arr.length?`<div class="msg ok">${arr.length} પ્રશ્નો મળ્યા. જરૂરી પ્રશ્નો પસંદ કરો.</div>`+arr.map((x,i)=>`<div class="pdfq" id="pdfq${i}"><label><input type="checkbox" onchange="togglePdfQ(${i},this.checked)"> <span><b>Q${i+1}.</b> ${esc(x.q)} ${x.marks?`<span class="markBadge">${x.marks} ગુણ</span>`:''}${x.a.length?'<br>'+x.a.map((a,j)=>`${String.fromCharCode(65+j)}. ${esc(a)}`).join(' &nbsp; '):''}</span></label></div>`).join(''):'<p class="muted">PDFમાંથી પ્રશ્નો મળ્યા નથી. જો PDF scanned/image છે તો browser-only text extraction શક્ય નહીં હોય.</p>';
+}
+window.togglePdfQ=(i,on)=>{const x=pdfExtractedQuestions[i];x.selected=on;document.querySelector('#pdfq'+i)?.classList.toggle('selected',on);renderSelectedQuestions()};
+function renderSelectedQuestions(){
+ const pdf=pdfExtractedQuestions.filter(x=>x.selected).map((x,i)=>({q:x.q,a:x.a,c:x.c,marks:x.marks,section:x.section||''}));
+ $('questionBuilder').innerHTML=pdf.map((x,i)=>`<div class="qRow" data-marks="${x.marks||1}"><div class="topbar"><b>PDF Question ${i+1}</b><span class="markBadge">${x.marks||1} ગુણ</span></div><textarea class="input qtext" rows="2">${esc(x.q)}</textarea><div class="optionGrid">${[0,1,2,3].map(j=>`<input class="input opt" value="${esc(x.a[j]||'')}" placeholder="Option ${String.fromCharCode(65+j)}">`).join('')}</div><select class="input correct"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option></select><input class="mini qmarks" type="number" min="1" value="${x.marks||1}" oninput="this.closest('.qRow').dataset.marks=this.value" placeholder="Marks / ગુણ / अंक"><select class="input qsection"><option value="">Section પસંદ કરો</option>${sections.map((s,j)=>`<option value="${esc(s.name)}" ${x.section===s.name?'selected':''}>${esc(s.name||'Section '+(j+1))}</option>`).join('')}</select></div>`).join('')||'';
+}
+window.addSection=window.addSection;
+const oldAddQuestion=window.addQuestion;
+window.addQuestion=()=>{oldAddQuestion();};
+$('pdfFile').addEventListener('change',async e=>{
+ const f=e.target.files?.[0];if(!f)return;msg('pdfMsg','PDF વાંચી રહ્યા છીએ...');
+ try{const r=await readPdf(f);const lang=$('testLanguage').value==='auto'?detectLang(r.text):$('testLanguage').value;$('testLanguage').value=lang;pdfExtractedQuestions=parseQuestions(r.text);pdfExtractedQuestions.forEach(x=>x.selected=false);renderPdfQuestions();msg('pdfMsg',`PDF વાંચાઈ. ${r.pages} pages • ભાષા: ${langLabel(lang)} • ${pdfExtractedQuestions.length} પ્રશ્નો મળ્યા.`,true)}catch(e){msg('pdfMsg','PDF વાંચી શકાઈ નથી: '+(e.message||e))}
+});
+// Replace saveTest with section/header-aware version
+window.saveTest=async()=>{
+ if(!currentUser)return;const title=$('testTitle').value.trim(),rows=[...document.querySelectorAll('.qRow')];
+ if(!title||!rows.length){msg('teacherMsg','ટેસ્ટનું નામ અને ઓછામાં ઓછો 1 પ્રશ્ન જરૂરી છે.');return}
+ const questions=rows.map(r=>({q:r.querySelector('.qtext').value.trim(),a:[...r.querySelectorAll('.opt')].map(x=>x.value.trim()),c:Number(r.querySelector('.correct').value),marks:Number(r.dataset.marks||1)||1,section:r.querySelector('.qsection')?.value||''}));
+ if(questions.some(x=>!x.q||x.a.some(a=>!a))){msg('teacherMsg','બધા પ્રશ્ન અને 4 options ભરો.');return}
+ const lang=$('testLanguage').value==='auto'?(pdfExtractedQuestions.length?detectLang(pdfExtractedQuestions.map(x=>x.q).join(' ')):'en'):$('testLanguage').value;
+ const id=push(ref(db,'tests')).key;const total=Number($('testTotalMarks').value)||questions.reduce((n,q)=>n+(q.marks||1),0);
+ await set(ref(db,'tests/'+id),{id,title,schoolName:$('schoolName').value.trim(),std:$('testStd').value.trim()||'10',subject:$('testSubject').value.trim()||'General',date:$('testDate').value||'',totalMarks:total,minutes:Number($('testMinutes').value)||30,passMarks:Number($('testPass').value)||0,teacherSign:$('teacherSign').value.trim(),principalSign:$('principalSign').value.trim(),language:lang,sections,teacherId:currentUser.uid,teacherName:$('teacherWelcome').textContent,questions,status:'draft',createdAt:Date.now()});
+ msg('teacherMsg','Test Save થયું. My Testsમાં Publish કરો.',true);alert('Test તૈયાર થયું.');
+};
+if($('testDate'))$('testDate').value=new Date().toISOString().slice(0,10); addSection(); updatePaperPreview();
+onAuthStateChanged(auth,async u=>{
+if(u&&!currentUser){
+const s=await get(ref(db,'users/'+u.uid));
+if(s.exists()){currentUser=u;const role=s.val().role;if(role==='student')showStudent(u);else if(role==='teacher')showTeacher(u,s.val());else if(role==='admin')showAdmin(u,s.val())}
+}
+});
+</script>
+</body>
+</html>
